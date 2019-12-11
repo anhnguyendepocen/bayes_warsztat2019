@@ -1,0 +1,10 @@
+---
+title: "Zastosowanie R w analizach Bayesowskich"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(haven)
+```
+

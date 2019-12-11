@@ -1,0 +1,30 @@
+---
+title: "Regresja i porównywanie średnich"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+## Regresja liniowa z jednym predyktorem
+
+
+## Regresja odporna
+
+
+## Porównywanie średnich
+
+```{r}
+
+```
+
+
+
+## Lepsza wersja testu t
+
+
+
+
+
