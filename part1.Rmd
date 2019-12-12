@@ -10,6 +10,13 @@ output:
 knitr::opts_chunk$set(echo = FALSE, warning = F, message = F, fig.height = 4, fig.width = 5)
 ```
 
+## Oczekiwania
+
+>- dobra znajomość statystyki (wielokrotna regresja, wieloczynnikowa ANOVA, HLM)
+>- poczucie, że klasyczne metody statystyczne są niewystarczające w pracy badacza
+>- przynajmniej podstawowa znajomość środowiska R
+>- lub brak strachu przed poznaniem R w ekspresowym tempie
+>- świadomość, że podczas warsztatu nie dostaniecie "gotowców" - każda analiza wymaga myślenia, metody bayesowskie szczególnie
 
 ## Opis warsztatu
 

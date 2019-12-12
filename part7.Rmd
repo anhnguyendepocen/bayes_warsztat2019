@@ -1,18 +1,297 @@
 ---
-title: "Bayesowskie uogólnione modele liniowe"
+title: "Bayesowski HLM"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+# 1. Modele hierarchiczne
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+Ogromną zaletą modeli bayesowskich jest możliwość tworzenia hierarchicznych zależności pomiędzy parametrami. Dzięki temu estymacja - przykłowo - hierarchicznych modeli liniowych ma znaczącą przewagę w stosunku do podejścia klasycznego (opartego na ML lub REML).
+
+$$
+outcome_i \sim Normal(\mu_{ij}, \sigma) \\
+\mu_{ij} = \beta_{1j} \times x_{1ij} + \beta_{2j} \times x_{2ij}   \\
+\beta_{1j} \sim Normal(\gamma_1, \tau_1) \\
+\beta_{2j} \sim Normal(\gamma_2, \tau_2) \\
+\gamma_1 \sim Student(3, 0, 10) \\
+\gamma_2 \sim Normal(0, 1) \\
+\tau_1 \sim Half-Student(4, 0, 1) \\
+\tau_2 \sim Half-Student(4, 0, 1) \\
+\sigma \sim Student(3, 0, 10)
+$$
+
+# 2. ANOVA z powtarzanymi pomiarami
+
+Naturalnym przykładem, w którym możemy zastosować modele hierarchiczne jest sytuacja w której dla jednej osoby mamy kilka pomiarów zmiennej (tzw. ANOVA z powtarzanymi pomiarami).
 
 ```{r}
-plot(cars)
+s3 %>% 
+  select(cond, jc_mean:gc_mean)
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+Aby wykorzystać te dane w modelowaniu hierarchicznym, musimy przekształcić je na tzw. format `long`.
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+```{r}
+s3Long <- s3 %>% 
+  select(lp, cond, jc_mean:gc_mean) %>% 
+  gather("target", "conspiracy", jc_mean:gc_mean) %>% 
+  mutate(target = factor(target))
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+contrasts(s3Long$target) <- contr.bayes
+s3Long
+```
+
+Sprawdźmy domyślne rozkłady prior.
+
+```{r}
+get_prior(conspiracy ~ cond * target + (1 | lp),
+          data = s3Long)
+```
+
+Oprócz ustawienia rozkładów prior dla parametrów regresji, ustalamy również rozkład prior dla odchylenia standardowego losowej stałej (Intercept).
+
+```{r}
+prior_hlm <- prior(normal(0, 1), class = b) +
+  prior(student_t(4,0, 1), class = sd)
+prior_hlm
+```
+
+Dopasujmy nasz model. Syntaks formuły jest niemal identyczny z tym stosowanym w pakiecie `lme4`.
+```{r}
+fit9 <- brm(conspiracy ~ cond*target + (1 | lp),
+            data = s3Long,
+            prior = prior_hlm,
+            seed = 1234)
+```
+
+Możemy wydrukować wyniki, ale ze względu na zastosowany sposób kodowania nie są one łatwe do interpretacji.
+
+```{r}
+fit9
+```
+
+Aby ułatwić interpretację, lepiej wyświetlić średni brzegowe.
+
+```{r}
+marginal_effects(fit9, "cond:target")
+```
+
+Możemy również wydrukować wartości i porównać warunki dla różnych grup (Żydów, Niemców, Rosjan).
+```{r}
+emmeans(fit9, pairwise ~ cond | target)
+```
+
+# 3. Analiza danych sondażowych
+
+Załadujmy dane z Polskiego Sondażu Uprzedzeń 2017
+
+```{r}
+survey <- read_csv("pps.csv", na = "999")
+```
+
+W sondażu mierzono wiarę w spisek żydowski, poczucie braku kontroli dla osób pochodzących z różnych województw.
+```{r}
+survey %>% 
+  glimpse()
+```
+
+Poniżej wydrukowano liczebności w poszczególnych województwach.
+
+```{r}
+survey %>% 
+  count(woj)
+```
+
+A tutaj wydrukowano średnie poparcie dla teorii spisku żydowskiego dla różnych województw.
+
+```{r}
+survey %>% 
+  group_by(woj) %>% 
+  summarise(mean(jc_mean, na.rm=T))
+```
+
+Spróbujmy stworzyć początkowy model zerowy. Zacznimy od ustalenia rozkładów prior.
+
+```{r}
+get_prior(jc_mean ~ 1 + (1 | woj),
+          data = survey)
+```
+
+Ustalmy rozkład prior dla zróżnicowania wiary w spisek żydowski pomiędzy województwami.
+```{r}
+prior_null <- prior(student_t(4, 0, 1), class = sd)
+```
+
+Dopasujmy nasz model.
+
+```{r}
+fit_null <- brm(jc_mean ~ 1 + (1 | woj),
+                data = survey,
+                prior = prior_null)
+```
+
+Wydruk modelu zerowego dostarcza informacji o parametrach populacyjnych (fixed effects) oraz związanych ze zmienną grupujacą (random effects).
+
+```{r}
+fit_null
+```
+
+Przy użyciu funkcji `icc` z pakietu `performance` możemy wyliczyć współczynnik IntraClass Correlation (ICC).
+```{r}
+performance::icc(fit_null)
+```
+
+Przy użyciu funkcji z pakietu `tidybayes` możemy obliczyć średnie poparcie dla teorii spisku żydowskiego w różnych województwach.
+Warto zauważyć, że w odróżnieniu od klasycznego HLM, gdzie efekty grupowe są inferowane z efektów stałych, w tym przypadku efekty grupowe są bezpośrednio inferowane z modelu.
+```{r}
+fit_null %>% 
+  spread_draws(b_Intercept, r_woj[woj, term]) %>% 
+  mutate(woj_level = b_Intercept + r_woj) %>% 
+  ggplot(aes(x = woj_level, y = woj))+
+  geom_halfeyeh()+
+  labs(x="Belief in Jewish conspiracy", y="")
+```
+
+Porównajmy efekty grupowe uzyskane z modelu ze zwykłymi średnimi oszacowanymi osobno dla każdej z grup. Warto zauważyć, że te pierwsze są bardziej "ściągnięte" (tzw. shrinkage) w kierunku średniej populacyjnej.
+
+```{r}
+fit_null %>% 
+  spread_draws(b_Intercept, r_woj[woj, term]) %>% 
+  mutate(woj_level = b_Intercept + r_woj) %>% 
+  ggplot(aes(x = woj_level, y = woj))+
+  geom_vline(xintercept = survey %>% 
+               summarise(mjc =mean(jc_mean, na.rm=T)) %>% 
+               pull(mjc),
+             linetype =2, colour = "gray")+
+  geom_halfeyeh()+
+  geom_point(data=survey %>% 
+               group_by(woj) %>% 
+               summarise(woj_level = mean(jc_mean, na.rm=T)),
+             colour = "red", shape = 4, size = )+
+  labs(x="Belief in Jewish conspiracy", y="")
+```
+
+Dołączmy do naszego modelu predyktor - poczucie braku kontroli (jako efekt populacjny/fixed). Przed włączeniem tego predyktora wycentrujmy jego wartości według średniej wojewódzkiej.
+
+```{r}
+survey <- survey %>% 
+  group_by(woj) %>% 
+  mutate(gc_lack_control = lack_control - mean(lack_control, na.rm=T)) %>% 
+  ungroup()
+```
+
+Dopasujmy nasz model. Możemy zastosować podobny rozkład prior jak w przypadku poprzedniego modelu z powtarzanymi pomiarami.
+```{r}
+fit_fixed_cov <- brm(jc_mean ~ gc_lack_control + (1 | woj),
+                data = survey,
+                prior = prior_hlm)
+```
+
+Według wydruku poczucie braku kontroli jest pozytywnym predyktorem wiary w spisek żydowski.
+```{r}
+fit_fixed_cov
+```
+
+Możemy narysować estymowany efekt populacyjny.
+
+```{r}
+marginal_effects(fit_fixed_cov, "gc_lack_control")
+```
+
+Lub efekt uwzględniający zróżnicowanie międzygrupowe.
+```{r}
+marginal_effects(fit_fixed_cov, "gc_lack_control", re_formula = NULL)
+```
+
+Przy użyciu pakietu `tidybayes` możemy narysować osobne linie dla każdego z województw.
+
+```{r}
+survey %>% 
+  data_grid(gc_lack_control = seq_range(gc_lack_control, n = 11), woj) %>% 
+  add_fitted_draws(fit_fixed_cov) %>% 
+  ggplot(aes(x = gc_lack_control, y=.value, color = woj, fill=woj))+
+  stat_lineribbon(.width = .95, alpha = 1/4)+
+  labs(x="Lack of control (group-centered)", y="Belief in Jewish conspiracy (fitted)",
+       colour = "Voivodship", 
+       fill="Voivodship")
+```
+
+Lub - dla większej czytelności - tylko dla kilku wybranych.
+```{r}
+survey %>% 
+  data_grid(gc_lack_control = seq_range(gc_lack_control, n = 11), 
+            woj = c("podkarpackie", "zachodniopomorskie", "łódzkie")) %>% 
+  add_fitted_draws(fit_fixed_cov) %>% 
+  ggplot(aes(x = gc_lack_control, y=.value, color = woj, fill=woj))+
+  stat_lineribbon(.width = .95, alpha = 1/4)+
+  labs(x="Lack of control (group-centered)", y="Belief in Jewish conspiracy (fitted)",
+       colour = "Voivodship", 
+       fill="Voivodship")
+```
+
+W kolejnym kroku możemy dołączyć do naszego modelu losowy efekt braku kontroli. Czyli sprawdźmy związek pomiędzy brakiem kontroli a wiarą w spisek żydowski dla różnych województw.
+
+Sprawdźmy domyślne rozkłady dla takiego modelu prior.
+
+```{r}
+get_prior(jc_mean ~ gc_lack_control + (gc_lack_control | woj),
+                data = survey)
+```
+
+Dopasujmy model.
+
+```{r}
+fit_random_cov <- brm(jc_mean ~ gc_lack_control + (gc_lack_control | woj),
+                data = survey,
+                prior = prior_hlm)
+```
+
+O ile część populacyjna zmieniła się tylko nieznacznie (choć oszacowanie efektu braku kontroli jest teraz bardziej sceptyczne), część grupowa zawiera kilka interesujących informacji.
+```{r}
+fit_random_cov
+```
+
+Podobnie jak poprzednio wydrukujmy efekty grupowe dla województw (tym razem oprócz losowej stałej również losowy efekt braku kontroli).
+```{r}
+fit_random_cov %>% 
+  spread_draws(b_Intercept,b_gc_lack_control, r_woj[woj, term]) %>% 
+  select(.draw, b_Intercept, b_gc_lack_control, woj, term, r_woj) %>% 
+  ungroup() %>% 
+  spread("term", "r_woj") %>% 
+  mutate(`Random intercept` = b_Intercept + Intercept,
+         `Random slope` = b_gc_lack_control + gc_lack_control) %>% 
+  select(.draw, woj, `Random intercept`, `Random slope`) %>% 
+  gather("term", "value",`Random intercept`:`Random slope`) %>% 
+  ggplot(aes(x=value, y=woj))+
+  geom_halfeyeh()+
+  facet_wrap(~term, scales = "free_x")+
+  labs(x="",y="")
+```
+
+Wyświetlenie dopasowanych linii osobno dla województw wskazuje na interesującą zależność.
+```{r}
+survey %>% 
+  data_grid(gc_lack_control = seq_range(gc_lack_control, n = 11), 
+            woj) %>% 
+  add_fitted_draws(fit_random_cov) %>% 
+  ggplot(aes(x = gc_lack_control, y=.value, color = woj, fill=woj))+
+  stat_lineribbon(.width = .95, alpha = 1/4)+
+  labs(x="Lack of control (group-centered)", y="Belief in Jewish conspiracy (fitted)",
+       colour = "Voivodship", 
+       fill="Voivodship")
+```
+
+Podobnie jak poprzednio możemy - dla większej czytelności - możemy pokazać efekty grupowe tylko dla wybranych województw.
+```{r}
+survey %>% 
+  data_grid(gc_lack_control = seq_range(gc_lack_control, n = 11), 
+            woj = c("pomorskie", "mazowieckie", "podkarpackie")) %>% 
+  add_fitted_draws(fit_random_cov) %>% 
+  ggplot(aes(x = gc_lack_control, y=.value, color = woj, fill=woj))+
+  stat_lineribbon(.width = .95, alpha = 1/4)+
+  labs(x="Lack of control (group-centered)", y="Belief in Jewish conspiracy (fitted)",
+       colour = "Voivodship", 
+       fill="Voivodship")
+```
+
+
+## Pytania
