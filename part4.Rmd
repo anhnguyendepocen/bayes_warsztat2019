@@ -55,7 +55,7 @@ library(brms)
 
 
 ```{r}
-real_data <- read_sav("~/bam_2019/notebooks/bam_class7_data.sav")
+real_data <- read_sav("bam_class7_data.sav")
 glimpse(real_data)
 ```
 
@@ -239,7 +239,7 @@ Modelowanie z użyciem predyktorów kategorialnych wykorzystuje identyczne model
 Sprawdźmy dane z innego badania.
 
 ```{r}
-s3 <- read_csv("~/bam_2019/notebooks/study3.csv", na = "-999")
+s3 <- read_csv("study3.csv", na = "-999")
 s3 <- s3 %>% 
   mutate(gender = factor(gender, levels = c("k","m"), labels = c("female","male")),
          cond = factor(cond))

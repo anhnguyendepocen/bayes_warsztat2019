@@ -105,7 +105,7 @@ $$
 Wróćmy do danych z poprzedniego dnia.
 
 ```{r}
-s3 <- read_csv("~/bam_2019/notebooks/study3.csv", na = "-999")
+s3 <- read_csv("study3.csv", na = "-999")
 s3 <- s3 %>% 
   mutate(gender = factor(gender, levels = c("k","m"), labels = c("female","male")),
          cond = factor(cond))
