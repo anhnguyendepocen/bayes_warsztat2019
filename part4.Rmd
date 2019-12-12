@@ -1,18 +1,379 @@
 ---
-title: "Regresja wielokrotna i analiza interakcji"
+title: "brms: regresja prosta i porównywanie średnich"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+# 1. Wprowadzenie do modeli bayesowskiej regresji
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+Symulacje MCMC znajdują szczególne zastosowanie w przypadku rozmaitych modeli regresyjnych.
+W takich modelach rozkład posterior jest wielowymiarowy: opisuje parametry związane z jednym lub więcej współczynnikami regresji oraz parametr związany z rozkładem reszt regresji.  
+
+$$
+outcome_i \sim Normal(\mu_i, \sigma) \\
+\mu_i = \beta \times predictor_i \\
+\beta \sim Normal(0, 10) \\
+\sigma \sim Student(3, 0, 10)
+$$
+
+O ile nie mamy podstaw aby używać informatywnych rozkładów prior, możemy zastosować rozkłady, które dostarczają minimalną ilość informacji na temat parametrów.
+
+Ten rozkład jest względnie agnostyczny względem współczynników regresji.
 
 ```{r}
-plot(cars)
+ggplot(aes(x=x), data = data.frame(x=seq(-50,50, length.out = 50)))+
+  stat_function(fun=dnorm, args = list(mean = 0, sd = 10), colour="blue")+
+  labs(title = "Prior distribution for regression weights", x = "beta", y="")
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+Z kolei połówkowy rozkład t Studenta jest względnie agnostyczny względem odchylenia standardowego reszt regresji.
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+```{r}
+dscaled_t <- function(x, sc, df){
+  dt(x/sc, df=df)
+}
+ggplot(aes(x=x), data = data.frame(x=seq(0,50, length.out = 50)))+
+  stat_function(fun=dscaled_t, args = list(df=3, sc=10), colour="blue")+
+  labs(title = "Prior distribution for standard deviation of residuals", x = "sigma", y="")
+```
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+# 2. Pierwszy model w brms
+
+Przed stworzeniem naszego pierwszego modelu zainstalujmy pakiet `brms`
+
+```{r}
+#install.packages('brms')
+```
+
+
+Załadujmy pakiety `tidyverse`, `haven` i `brms`.
+
+```{r}
+library(tidyverse)
+library(haven)
+library(brms)
+```
+
+
+```{r}
+real_data <- read_sav("~/bam_2019/notebooks/bam_class7_data.sav")
+glimpse(real_data)
+```
+
+Przed włączeniem predyktorów do analiz w `brms` zalecane (niezbędne) jest ich wystandaryzowanie.
+
+```{r}
+real_data <- real_data %>% 
+  mutate(zFBK = (FBK - mean(FBK, na.rm=T)) / sd(FBK, na.rm=T) )
+```
+
+Warto również spojrzeć na wykres, aby upewnić się, że nasz model ma sens.
+
+```{r}
+real_data %>% 
+  ggplot(aes(zFBK, sumPro))+
+  geom_jitter()+
+  labs(x="Feelings of lack of control (z-score)", y="Sum of personal projects")+
+  scale_y_continuous(breaks=0:10)
+```
+
+Modelowanie w pakiecie `brms` jest bardzo proste.
+
+```
+brm(formula = PREDICTED_VARIABLE ~ PREDICTORS,
+    data = NAME_OF_DATA_FRAME,
+    prior = PRIOR_DISTRIBUTION,
+    family = LIKELIHOOD_DISTRIBUTION)
+```
+
+Część parametrów ma już nadane nieinformatywne rozkłady prior.
+
+```{r}
+get_prior(sumPro ~ zFBK, 
+          data = real_data)
+```
+
+Przypiszmy parametrowi współczynnika regresji Normaly rozkład prior, ze średnią 0 i odchylenie standardowym 10.
+
+```{r}
+prior_reg_weights <- prior(normal(0, 10), class = b)
+prior_reg_weights
+```
+
+Możemy teraz spróbować dopasować nasz model.
+
+```{r}
+fit1 <- brm(sumPro ~ zFBK,
+            data = real_data,
+            prior = prior_reg_weights,
+            family = gaussian())
+```
+
+Większość interesujących nas informacji zawarta jest w podstawowym wydruku.
+Należy uważnie sprawdzać kolumny Rhat, Bulk_ESS i Tail_ESS. Informują one o jakości symulacji MCMC.
+Rhat dla wszystkich parametrów powinno być mniejsze niż 1.01.
+Bulk_ESS i Tail_ESS powinny wynosić przyjnajmniej 400.
+
+```{r}
+fit1
+```
+
+Dodatkowo, możemy sprawdzić wartość $R^2$.
+
+```{r}
+bayes_R2(fit1)
+```
+
+Oraz narysować predykcje naszego modelu.
+
+```{r}
+marginal_effects(fit1, "zFBK", spaghetti = T, nsamples = 50)
+```
+
+Poniżej ten sam wykres, z dodatkowymi opcjami. 
+
+```{r}
+marginal_effects(fit1, "zFBK", spaghetti = T, nsamples = 300) %>% 
+  plot(points = T, point_args = list(width = 0.2, height = 0.2), plot=F) %>% 
+  .[[1]] +
+  labs(x="Feelings of lack of control (z-score)", y="Sum of personal projects")
+```
+
+
+
+
+# 3. Odporna regresja liniowa.
+
+Czasami w naszych danych będą pojawiały się odstające obserwacje (outliery).
+
+```{r}
+real_data$sumProOut <- real_data$sumPro
+real_data$sumProOut[20] <- 20
+real_data$sumProOut[34] <- 18
+real_data$sumProOut[49] <- 16
+
+real_data %>% 
+  ggplot(aes(zFBK, sumProOut))+
+  geom_jitter()+
+  labs(x="Feelings of lack of control (z-score)", y="Sum of personal projects (with fake outliers)")
+```
+
+
+Sprawdźmy jak radzi sobie z taką sytuacją standardowy model.
+
+```{r}
+fit2 <- brm(sumProOut ~ zFBK,
+            data = real_data,
+            prior = prior_reg_weights,
+            family = gaussian())
+```
+
+Porównajmy wynik z modelem `fit1`.
+
+```{r}
+fit2
+```
+
+Sprawdźmy zależność na wykresie.
+
+```{r}
+marginal_effects(fit2, "zFBK", spaghetti = T, nsamples = 300) %>% 
+  plot(points = T,
+       point_args = list(width = 0.2, height = 0.2)) %>% 
+  .[[1]] +
+  labs(x="Feelings of lack of control (z-score)", y="Sum of personal projects (with outliers)")
+```
+
+
+W przypadku modeli bayesowskich nie musimy zakładać, że rozkład reszt jest Normalny. Może on mieć np. rozkład t Studenta.
+
+```{r}
+ggplot(data=data.frame(x=seq(-5, 5, length.out = 100)), mapping = aes(x=x))+
+  stat_function(aes(colour = "Normal likelihood"),
+                fun = dnorm, args = list(mean = 0, sd=1))+
+  stat_function(aes(colour = "Student likelihood (df=30)"),
+                fun = dt, args = list(df = 30))+
+  stat_function(aes(colour = "Student likelihood (df=3)"),
+                fun = dt, args = list(df = 3))+
+  labs(x="",y="",colour="")
+```
+
+Nie musimy ustalać wartości stopni swobody. Możemy ją oszacować - musimy tylko przypisać jej rozkład prior (tutaj rozkład gamma).
+
+```{r}
+get_prior(sumProOut ~ zFBK,
+            data = real_data,
+            family = student())
+```
+
+Sprawdźmy jak radzi sobie taka wersja modelu.
+
+```{r}
+fit3 <- brm(sumProOut ~ zFBK,
+            data = real_data,
+            prior = prior_reg_weights,
+            family = student())
+```
+
+
+Porównajmy wynik do modelu `fit2` i `fit1`.
+
+```{r}
+fit3
+```
+
+Narysujmy wykres z dopasowaną linią regresji.
+
+```{r}
+marginal_effects(fit3, "zFBK", spaghetti = T, nsamples = 300) %>% 
+  plot(points = T,
+       point_args = list(width = 0.2, height = 0.2)) %>% 
+  .[[1]] +
+  labs(x="Feelings of lack of control (z-score)", y="Sum of personal projects (with outliers)")
+```
+
+
+# 4. Regresja z predyktorami kategorialnymi.
+
+Modelowanie z użyciem predyktorów kategorialnych wykorzystuje identyczne modele. Predyktory kategorialne są tylko uprzednio - automatycznie - zamieniane na zmienne dummy (lub inne kontrasty w zależności od potrzeb).
+
+Sprawdźmy dane z innego badania.
+
+```{r}
+s3 <- read_csv("~/bam_2019/notebooks/study3.csv", na = "-999")
+s3 <- s3 %>% 
+  mutate(gender = factor(gender, levels = c("k","m"), labels = c("female","male")),
+         cond = factor(cond))
+
+glimpse(s3)
+```
+
+Naszym predyktorem kategorialnym będzie w tym przypadku płeć. W tym przypadku kodowana przy pomocy 2 wartości.
+
+```{r}
+s3 %>% 
+  count(gender)
+```
+
+
+```{r}
+tibble(
+  category = rep(c("female","male"), each = 3),
+  dummy = rep(0:1, each = 3)
+)
+```
+
+Sprawdźmy rozkład zmiennej objaśnianej.
+
+```{r}
+s3 %>% 
+  ggplot(aes(x=jc_mean))+
+  geom_density()
+```
+
+
+Sprawdźmy jak ustalone są domyślne rozkłady prior dla tego modelu.
+
+```{r}
+get_prior(jc_mean ~  gender, 
+           data = s3)
+```
+
+W tym przypadku, dla współczynnika regresji ustalmy Normalny rozkład prior o średniej 0 i odchyleniu standardowym 1. 
+
+```{r}
+prior1 <- prior(normal(0, 1), class = b)
+```
+
+Ponieważ odchylenie standardowe zmiennej objaśnianej wynosi 1, jest bardzo mało prawdopodobne, żeby różnica pomiędzy kobietami a mężczyznami wynosiła więcej niż 1 (lub mniej niż -1).
+```{r}
+tibble(b = seq(-4,4, length.out = 100)) %>% 
+  ggplot(aes(x=b))+
+  stat_function(fun = dnorm, args = list(mean = 0, sd = 1))
+```
+
+[Tutaj](https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations) można sprawdzić rekomendacje jak ustalać rozkłady prior.
+
+Dopasujmy nasz model.
+
+```{r}
+fit4 <- brm(jc_mean ~ gender, 
+           data = s3,
+           prior = prior1,
+           seed = 1234)
+```
+
+Możemy teraz sprawdzić współczynniki regresji, aby dowiedzieć się czy model wskazuje na różnicę pomiędzy mężczyznami a kobietami.
+
+```{r}
+fit4
+```
+
+Możemy również stworzyć wykres obrazujący różnicę.
+
+```{r}
+marginal_effects(fit4)
+```
+
+Lub wykorzystać pakiet `emmeans` aby wydrukować wartości średnich.
+
+Zainstalujmy najpierw pakiet `emmeans`.
+
+```{r}
+#install.packages('emmeans')
+```
+
+
+```{r}
+library(emmeans)
+emmeans(fit4, ~gender)
+```
+
+Przy użyciu pakietu `tidybayes` możemy tworzyć bardziej zaawansowane wykresy obrazujące różnice.
+
+Zainstalujmy pakiet `tidybayes`.
+
+```{r}
+#install.packages('tidybayes')
+```
+
+Tutaj jest przykład wykresu, tzw. half-eye plot.
+```{r}
+library(tidybayes)
+library(modelr)
+theme_set(theme_tidybayes())
+s3 %>% 
+  data_grid(gender) %>% 
+  add_fitted_draws(fit4) %>% 
+  ggplot(aes(x=.value, y=gender))+
+  geom_halfeyeh(aes(fill = gender))+
+  labs(x="Belief in Jewish conspiracy", y = "Gender")+
+  guides(fill=F)
+```
+
+Tutaj jest przykład wykresu z różnymi przedziałami wiarygodności.
+
+```{r}
+s3 %>% 
+  data_grid(gender) %>% 
+  add_fitted_draws(fit4) %>% 
+  ggplot(aes(x=.value, y=gender))+
+  stat_intervalh()+
+  labs(x="Belief in Jewish conspiracy", y = "Gender")
+```
+
+Lub jeżeli interesują nas różne przedziały dla różnicy.
+
+```{r}
+s3 %>% 
+  data_grid(gender) %>% 
+  add_fitted_draws(fit4) %>% 
+  compare_levels(variable = .value, by = gender) %>% 
+  ggplot(aes(x=.value, y=gender))+
+  stat_intervalh()+
+  labs(x="Difference in belief in Jewish conspiracy", y = "")
+```
+
+
+## Jeżeli mamy czas, Twoja kolej:
+
+- Przeprowadzaź analogiczną analizę przy użyciu rozkładu t Studenta.

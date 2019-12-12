@@ -3,16 +3,177 @@ title: "Testowanie hipotez i porównywanie modeli"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+# 1. Porównywanie modeli bayesowskich.
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+Przetestowaliśmy kilka modeli, ale który z nich wybrać. 
+
+Możecie się również zastanawiać - skoro testujemy analizę wariancji, to gdzie się podziała tabele z wartościami F. 
+
+W końcu możecie się zastanawiać gdzie się podziały wartości *p* - mój promotor lub recenzent chce je widzieć.
+
+Spróbujmy rozwiązać te kwestie przy pomocy pakietu `bayestestR`.
 
 ```{r}
-plot(cars)
+library(bayestestR)
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+Dla uproszczenia skupmy się na pewnej klasie modeli, które chcemy porównywać. Wszystkie on objaśniają tą samą zmienną - wiarę w spisek żydowski.
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+```{r}
+fit_null <- brm(jc_mean ~ 1,
+                data = s3,
+                iter = 20000,
+                save_all_pars = T)
+fit_cond <- brm(jc_mean ~ cond,
+                data = s3,
+                prior = prior5,
+                iter = 20000,
+                save_all_pars = T)
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+fit_gender <- brm(jc_mean ~ gender,
+                data = s3,
+                prior = prior5,
+                iter = 20000,
+                save_all_pars = T)
+
+fit_both <- brm(jc_mean ~ gender + cond,
+                data = s3,
+                prior = prior5,
+                iter = 20000,
+                save_all_pars = T)
+
+fit_both_int <- brm(jc_mean ~ gender * cond,
+                data = s3,
+                prior = prior5,
+                iter = 20000,
+                save_all_pars = T)
+```
+
+Możemy teraz porównać te modele przy pomocy tzw. czynnika Bayesa.
+
+Czynnik Bayes informuje o ile bardziej prawdopodobne są nasze obserwacje, jeżeli przyjmiemy model 2 w porównaniu do modelu 1.
+
+Porównajmy ze sobą wszystkie modele przy użyciu funkcji `bayesfactor_models`.
+
+```{r}
+bfModels <- bayesfactor_models(fit_null, fit_cond, fit_gender, fit_both, fit_both_int)
+```
+
+W tym przypadku każdy z modeli jest porównywany do modelu zerowego (bez żadnych predyktorów).
+
+Poniższa analiza sugeruje, że uzyskane obserwacje są najbardziej zgodne z modelem z samą płcią. 
+Tzn. obserwacje są 7710 bardziej prawdopodobe przy modelu uwzględniającym płeć niż przy modelu nie uwzględniającym żadnego predyktora.
+
+```{r}
+bfModels
+```
+
+Możemy przedstawić to porównanie przy pomocy wykresu kołowego (choć nie jest on specjalnie czytelny).
+```{r}
+bfModels %>% 
+  plot()
+```
+
+Innym rodzajem analizy jest sprawdzenie czynnika Bayesa dla włączenia (*inclusion Bayes Factor*)
+```{r}
+bfInclusion <- bayesfactor_inclusion(bfModels, match_models = T)
+```
+
+Ta analiza wskazuje czy nasze obserwacje są bardziej prawdopodobne przy modelach zawierających unikalny efekt, niż przy modelach nie zawierających tego efektu.
+
+```{r}
+bfInclusion
+```
+
+Czynnik Bayesa jest często krytykowany ze względu na dużą wrażliwość na przyjęty rozkład prior.
+
+Innym sposobem porównywania modeli jest stosowanie kryterium informacyjnych.
+
+Kryteria informacyjne testują, na ile utworzone modele mogą być wykorzystywane do przewidywania nowych wartości zmiennej objaśnianej. Model z mniejszą wartością kryterium informacyjnego ma lepszą wartość predykcyjną.
+
+Sprawdźmy moc predykcyjną dwóch wybranych modeli przy użyciu popularnego obecnie kryterium o nazwie LOOIC (Leave-One-Out Information Criterion).
+
+Obliczmy LOOIC dla modelu z dwoma predyktorami ale bez interakcji.
+
+```{r}
+fit_both <- add_criterion(fit_both, criterion = "loo")
+fit_both$loo
+```
+
+Oraz dla modelu z interakcją.
+```{r}
+fit_both_int <- add_criterion(fit_both_int, criterion = "loo")
+fit_both_int$loo
+```
+
+Widzimy, że model bez interakcji ma lepszą wartość predykcyjną (niższe LOOIC) niż model z interakcją. Różnica jest relatywnie duża w porównaniu do jej błędu standardowego. 
+
+Bazując na tym porównaniu wybralibyśmy model bez interakcji.
+```{r}
+loo_compare(fit_both, fit_both_int)
+```
+
+Bazując na wartościach LOO możemy jednak uśrednić dwa modele i przedstawić estymowane średnie uwzględniające oba modele. Przy czym model z lepszym LOO ma większą wagę.
+
+```{r}
+post_ave <- pp_average(fit_both, fit_both_int,
+                       newdata = s3 %>% 
+                        data_grid(cond, gender),
+                       method = "fitted")
+```
+
+```{r}
+s3 %>% 
+  data_grid(cond, gender) %>% 
+  bind_cols(post_ave %>% 
+              as.data.frame()) %>% 
+  ggplot(aes(x=cond, y=Estimate, colour = gender))+
+  geom_point(position = position_dodge(width=.2))+
+  geom_errorbar(aes(ymin=`Q2.5`, ymax=`Q97.5`), width = .2,
+                position = position_dodge(width = .2))
+```
+
+# 2. Testowanie hipotez.
+
+
+Czasami zależy nam na prostszym testowaniu hipotez. Na przykład gdy interesuje nas jedynie to czy różnica pomiędzy kobietami a mężczyznami jest różna od 0 czy nie. 
+
+Jeżeli nie chcemy stosować estymacji przedziałowej, możemy też obliczyć czynnik Bayesa dla wybranych parametrów.
+
+W tym przypadku czynnik Bayesa informuje nas o ile bardziej po przeprowadzeniu badania wzrosło nasze przekonanie, że różnica nie wynosi 0, w porównaniu do sytuacji przed badanie.
+
+```{r}
+fit_gender %>% 
+  bayesfactor_parameters()
+```
+
+Poniższy wykres nieco rozjaśnia o co chodzi.
+
+```{r}
+fit_gender %>% 
+  bayesfactor_parameters() %>% 
+  plot()
+```
+
+Jeżeli nie do końca rozumiecie o co chodzi, nie przejmujcie się. Wiele osób ma problemy ze zrozumieniem o co w tym wszystkim chodzi.
+
+Łatwiejszą koncepcją jest testowanie hipotez w oparciu o tzw. ROPE (region of practical equivalence).
+
+ROPE to region wartości (np. różnic), które uważamy za wskazujące praktyczną równoważność dwóch warunków. Tzn. różnica wartości w obu warunkach jest tak mała, że nie ma żadnego praktycznego znaczenia.
+
+Domyślnie funkcja `equivalence_test` ustala ROPE jako +/- 1/10 odchylenia standardowego zmiennej objaśnianej. Można to porównać do wartości ustalonej przez Cohen'a, który wskazał że efekty o sile mniejszej niż d = 0.1 należy traktować jako bardzo małe.
+
+Następnie funkcja `equivalence_test` sprawdza w jakim stopniu ROPE i HPDI o wielkości 89% pokrywają się. Jeżeli nie ma żadnego overlapu możemy uznać, że przy założonym modelu test odrzuca hipotezę, że obserwowany efekt jest bardzo mały.
+```{r}
+equivalence_test(fit_gender)
+```
+
+Lepiej widać to na dodatkowym wykresie.
+```{r}
+equivalence_test(fit_gender) %>% 
+  plot()
+```
+
+### To jest czas na pytania: odnośnie tej części a także całego warsztatu.
+

@@ -1,18 +1,236 @@
 ---
-title: "Bayesowskie HLM"
+title: "Bayesowska ANOVA"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+# 1. Bayesowska ANOVA
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+Główną zmienną niezależną w zbiorze s3 jest zmienna `cond` oznaczająca przydział do jednego z warunków eksperymentalnych.
 
 ```{r}
-plot(cars)
+s3 %>% 
+  glimpse()
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+Jeżeli chcemy w równaniu regresji porównywać poziomy zmiennej kategorialnej o liczbie kategorii większej niż 2, powinniśmy zastosować nieco bardziej złożony schemat kodowania.
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+Domyślnie stosowane jest zwykłe dummy-coding.
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```{r}
+contrasts(s3$cond)
+```
+
+Dla potrzeb dalszych analiz zastosujmy jednak inny rodzaj kodowania, dostępny w pakiecie `bayestestR`.
+
+```{r}
+library(bayestestR)
+```
+
+Taki rodzaj kodowania może być mniej zrozumiały, ale zapewnia on że porównania różnych poziomów zmiennej kategorialnej otrzymują taki sam rozkład prior.
+
+```{r}
+contrasts(s3$cond) <- contr.bayes
+contrasts(s3$cond)
+```
+
+Sprawdźmy rozkład prior przypisany parametrom modelu.
+
+```{r}
+get_prior(jc_mean ~ cond,
+          data = s3)
+```
+
+Przypiszmy parametrom regresji podobny rozkład prior jak w poprzednich przykładach.
+
+```{r}
+prior4 <- prior(normal(0, 1), class = b)
+```
+
+Dopasujmy nasz model.
+
+```{r}
+fit7 <- brm(jc_mean ~ cond,
+            data = s3,
+            prior = prior4,
+            seed = 1234)
+```
+
+Ponieważ zastosowaliśmy inny niż dummy coding schemat kodowania, ten 'output' może być dla nas mniej zrozumiały.
+
+```{r}
+fit7
+```
+
+Jednak wykresy estymowanych średnich brzegowych działają bez zarzutu.
+
+```{r}
+marginal_effects(fit7, "cond")
+```
+
+Tak jak poprzednio, możemy wydrukować średnie brzegowe oraz porównać je ze sobą przy użyciu funkcji `emmeans`.
+```{r}
+emmeans(fit7, pairwise~cond)
+```
+
+Możemy również testować własne kontrasty. Poniżej testujemy różnicę pomiędzy warunkiem 'powerlessness' a średnią warunków 'baseline' i 'meaninglessness'.
+```{r}
+em1 <- emmeans(fit7, ~cond)
+contrast(em1, list(p_vs_base_and_mean = c(-0.5, -0.5, 1)))
+```
+
+Przy użyciu pakietu `tidybayes` możemy wydrukować bardziej informatywne wykresy średnich brzegowych.
+
+```{r}
+library(tidybayes)
+library(modelr)
+s3 %>% 
+  data_grid(cond) %>% 
+  add_fitted_draws(fit7) %>% 
+  ggplot(aes(x=.value, y=cond))+
+  geom_halfeyeh(aes(fill = cond))+
+  labs(x="Belief in Jewish conspiracy", y = "Condition")+
+  guides(fill=F)
+```
+
+Możemy zrobić to samo dla porównań średnich brzegowych.
+
+```{r}
+s3 %>% 
+  data_grid(cond) %>% 
+  add_fitted_draws(fit7) %>% 
+  compare_levels(variable = .value, by = cond) %>%
+  ggplot(aes(x=.value, y=cond))+
+  geom_vline(xintercept = 0, linetype=2, colour = "gray")+
+  geom_halfeyeh(aes(fill = cond))+
+  labs(x="Belief in Jewish conspiracy", y = "")+
+  guides(fill=F)
+```
+
+W końcu możemy skonstruować i wyświetlić dowolny kontrast. 
+```{r}
+s3 %>% 
+  data_grid(cond) %>% 
+  add_fitted_draws(fit7) %>% 
+  ungroup() %>% 
+  select(.draw, cond, .value) %>% 
+  spread("cond",".value") %>% 
+  mutate(power_vs_mean_and_base = powerlessness - 0.5*meaninglessness - 0.5*baseline,
+         contrast = "Contrast") %>% 
+  ggplot(aes(x=power_vs_mean_and_base, y = contrast))+
+  geom_vline(xintercept = 0, linetype=2, colour = "gray")+
+  geom_halfeyeh(aes(fill = contrast))+
+  labs(x="Belief in Jewish conspiracy", y = "")+
+  guides(fill=F)
+```
+
+# 2. Bayesowska dwuczynnikowa ANOVA
+
+Sprawdźmy teraz model z dwoma czynnikami: warunkiem eksperymentalnym oraz płcią uczestnika.
+
+
+Jak zwykle należy sprawdzić, jaki domyślny rozkład prior przypisano parametrom modelu.
+```{r}
+get_prior(jc_mean ~ cond * gender,
+          data = s3)
+```
+
+Możemy przypisać taki sam rozkład prior jak poprzednio.
+```{r}
+prior5 <- prior(normal(0, 1), class = b)
+```
+
+Dwuczynnikowa ANOVA ma taką samą formułę, jak regresja z interakcją. Jedyną różnicą jest to, że tutaj mamy 2 zmienne kategorialne.
+```{r}
+fit8 <- brm(jc_mean ~ cond * gender,
+            data = s3,
+            prior = prior5,
+            seed = 1234)
+```
+
+Również w tym przypadku wydruk może być trudny do interpretacji (ze względu na zastosowane kodowanie).
+```{r}
+fit8
+```
+
+Wykres średnich brzegowych jest jednak czytelny.
+
+Wydaje się, że efekt 'powerlessness' na wiarę w spisek żydowski jest szczególnie silny w przypadku mężczyzn.
+```{r}
+marginal_effects(fit8, "cond:gender")
+```
+
+Porównania średnich wskazują to samo. Różnica pomiędzy warunkami 'powerlessness' i 'baseline' pojawia się przede wszystkim w przypadku mężczyzn.
+```{r}
+emmeans(fit8, pairwise~cond | gender)
+```
+
+W podobny sposób możemy przeprowadzić analizę kontrastów, osobno dla każdej z płci.
+Widzimy, że efekt 'powerlessness' w porównaniu do pozostałych warunków jest szczególnie silny w przypadku mężczyzn.
+```{r}
+em2 <- emmeans(fit8, ~cond | gender)
+contrast(em2, list(p_vs_base_and_mean = c(-0.5, -0.5, 1)))
+```
+
+Czasami w wieloczynnikowej analizie wariancji sprawdza się również efekty główne.
+
+Możemy to zrobić przy pomocy funkcji `emmeans`.
+
+Dla warunku.
+```{r}
+emmeans(fit8, pairwise ~ cond)
+```
+
+Dla płci.
+```{r}
+emmeans(fit8, pairwise ~ gender)
+```
+
+Uważajcie jednek jeżeli chcielibyście wydrukować efekty brzegowe osobno dla płci i warunku.
+
+W tym przypadku na wykresie są jedynie średnie dla kobiet (a nie uśrednione dla kobiet i mężczyzn).
+```{r}
+### UWAGA ###
+marginal_effects(fit8, "cond")
+```
+
+W tym przypadku na wykresie są jedynie średnie dla warunku baseline (a nie uśrednione dla wszystkich warunków).
+```{r}
+### UWAGA ###
+marginal_effects(fit8, "gender")
+```
+
+Wykresy dla efektów głównych możemy otrzymać kodując je własnoręcznie przy użyciu pakietu `tidybayes`. 
+
+W tym przypadku dla każdego warunku uśredniłem oszacowanie dla kobiet i mężczyzn.
+Można również zastosować średnią ważoną według proporcji płci.
+```{r}
+s3 %>% 
+  data_grid(cond, gender) %>% 
+  add_fitted_draws(fit8) %>% 
+  ungroup() %>% 
+  select(.draw, cond, gender, .value) %>%
+  spread("gender",".value") %>%
+  mutate(effect = (female + male) / 2) %>% 
+  ggplot(aes(x=effect, y=cond))+
+  geom_halfeyeh(aes(fill = cond))+
+  labs(x="Belief in Jewish conspiracy", y = "Condition")+
+  guides(fill=F)
+```
+
+
+W tym przypadku dla każdej płci uśredniłem oszacowania każdego warunku.
+Można również zastosować średnią ważoną według proporcji przydziału do warunków.
+
+```{r}
+s3 %>% 
+  data_grid(cond, gender) %>% 
+  add_fitted_draws(fit8) %>% 
+  ungroup() %>% 
+  select(.draw, cond, gender, .value) %>%
+  spread("cond",".value") %>%
+  mutate(effect = (baseline + meaninglessness + powerlessness) / 3) %>% 
+  ggplot(aes(x=effect, y=gender))+
+  geom_halfeyeh(aes(fill = gender))+
+  labs(x="Belief in Jewish conspiracy", y = "Condition")+
+  guides(fill=F)
+```

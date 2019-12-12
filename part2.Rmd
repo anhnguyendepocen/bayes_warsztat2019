@@ -1,5 +1,5 @@
 ---
-title: "Zastosowanie R w analizach Bayesowskich"
+title: "Powtórka z R"
 output: html_notebook
 ---
 

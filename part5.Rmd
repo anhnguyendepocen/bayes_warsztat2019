@@ -1,18 +1,257 @@
 ---
-title: "Bayesowska ANOVA"
+title: "brms: regresja wielokrotna i analiza moderacji"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+# 1. Bayesowska regresja z wieloma predyktorami.
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
 
+Zacznijmy od załadowania pakietu `tidyverse`, `emmeans` i `brms`.
 ```{r}
-plot(cars)
+library(tidyverse)
+library(emmeans)
+library(brms)
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+Dla przykładu poniżej widzimy pozytywną zależność pomiędzy x i y.
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+```{r}
+set.seed(2134)
+tibble(x = c(rnorm(50),rnorm(50,2)),
+       gender = rep(c("women","men"), each = 50),
+       y =  c(1 + rnorm(50), 3 + rnorm(50))) %>% 
+  ggplot(aes(x,y))+
+  geom_point()+
+  geom_smooth(method = "lm")
+```
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+Ale jeżeli na ten sam wykres nałożymy dane np. o płci uczestnika badania oraz dopasowane osobno linie regresji, widzimy że zależność znika.
+
+```{r}
+set.seed(2134)
+tibble(x = c(rnorm(50),rnorm(50,2)),
+       gender = rep(c("women","men"), each = 50),
+       y =  c(1 + rnorm(50), 3 + rnorm(50))) %>% 
+  ggplot(aes(x,y, colour = gender))+
+  geom_point()+
+  geom_smooth(aes(fill=gender),method = "lm")
+```
+
+Podobnie możemy obserwować różnicę pomiędzy kobietami i mężczyznami.
+
+```{r}
+set.seed(2134)
+tibble(x = c(rnorm(50),rnorm(50,2)),
+       gender = rep(c("women","men"), each = 50),
+       y =  c(1 + x[1:50] + rnorm(50), 1 + x[51:100] + rnorm(50))) %>% 
+  ggplot(aes(gender,y, fill=gender))+
+  geom_boxplot()+
+  guides(fill=F)
+```
+
+Ale jeżeli wiemy (domyślamy się), że kobiety i mężczyźni różnią się poziomem zmiennej x, która jest również związana ze zmienną y (jak na poniższym rysunku)...
+
+```{r}
+set.seed(2134)
+tibble(x = c(rnorm(50),rnorm(50,2)),
+       gender = rep(c("women","men"), each = 50),
+       y =  c(1 + x[1:50] + rnorm(50), 1 + x[51:100] + rnorm(50))) %>% 
+  ggplot(aes(x,y))+
+  geom_point(aes(colour = gender))+
+  geom_smooth(method="lm")+
+  guides(fill=F)
+```
+
+Możemy *wytrącić* ze zmiennej y zmienność wynikającą z poziomu zmiennej x.
+
+```{r}
+set.seed(2134)
+tibble(x = c(rnorm(50),rnorm(50,2)),
+       gender = rep(c("women","men"), each = 50),
+       y =  c(1 + x[1:50] + rnorm(50), 1 + x[51:100] + rnorm(50))) -> exDf
+
+exDf$res_y <- exDf %>% 
+  lm(y ~ x, data = .) %>% 
+  resid()
+
+exDf %>% 
+  ggplot(aes(x,res_y))+
+  geom_point(aes(colour = gender))+
+  geom_smooth(method="lm")+
+  labs(y="Residual y")+
+  guides(fill=F)
+```
+
+Porównanie reszt regresji pomiędzy kobietami i mężczyznami wskazuje, że obserwowana wcześniej różnica była pozorna.
+
+```{r}
+exDf %>% 
+  ggplot(aes(gender,res_y, fill=gender))+
+  geom_boxplot()+
+  guides(fill=F)+
+  labs(y = "Residual y")
+```
+
+
+Takie efekty testujemy włączając do modelu więcej niż 1 predyktor.
+
+$$
+outcome_i \sim Normal(\mu_i, \sigma) \\
+\mu_i = \beta_1 \times x_1i + \beta_2 \times x_2i   \\
+\beta \sim Normal(0, 1) \\
+\sigma \sim Student(3, 0, 10)
+$$
+
+Wróćmy do danych z poprzedniego dnia.
+
+```{r}
+s3 <- read_csv("~/bam_2019/notebooks/study3.csv", na = "-999")
+s3 <- s3 %>% 
+  mutate(gender = factor(gender, levels = c("k","m"), labels = c("female","male")),
+         cond = factor(cond))
+
+glimpse(s3)
+```
+
+Przed włączeniem mentalności spiskowej jako kowariantu, upewnijmy się że jest ona wystandaryzowana.
+
+```{r}
+s3 <- s3 %>% 
+  mutate(cm_mean_z = (cm_mean - mean(cm_mean, na.rm=T))/sd(cm_mean, na.rm=T))
+```
+
+Sprawdźmy jak wyglądają domyślne rozkłady prior.
+
+```{r}
+get_prior(jc_mean ~ gender + cm_mean_z,
+            data = s3)
+```
+
+Możemy przypisać rozkłady prior osobno każdemu współczynnikowi regresji lub wszystkim oznaczonym jako należącym do klasy `b`.
+
+```{r}
+prior2 = prior(normal(0, 1), coef = cm_mean_z) + prior(normal(0, 1), coef=gendermale)
+## it the same as
+prior2 = prior(normal(0, 1), class = b)
+```
+
+Dopasujmy nasz model.
+
+```{r}
+fit5 <- brm(jc_mean ~ gender + cm_mean_z,
+            data = s3,
+            prior = prior2,
+            seed = 1234)
+```
+
+Widzimy, że w porównaniu do modelu bez kowariantu różnica jest nieco mniejsza, ale nadal się utrzymuje.
+
+```{r}
+fit5
+```
+
+Przy użyciu funkcji `marginal_effects` możemy przedstawić nasze zależności.
+Jeżeli chcemy wykres tylko dla jednego predyktora musimy dodatkowo podać jego nazwę.
+
+Poniżej wykres dla mentalności spiskowej.
+
+```{r}
+marginal_effects(fit5, "cm_mean_z")
+```
+
+Tutaj jest wykres dla płci.
+
+```{r}
+marginal_effects(fit5, "gender")
+```
+
+Jak poprzednio możemy wydrukować wartości średnich dla kobiet i mężczyzn. Tym razem przy kontroli poziomu mentalności spiskowej.
+
+```{r}
+emmeans(fit5, ~gender)
+```
+
+
+# 2. Bayesowska analiza moderacji
+
+Poprzedni model zakłada brak interakcji pomiędzy płcią a mentalnością spiskową. Tzn. że związek pomiędzy mentalnością spiskową a wiarą w spisek żydowski jest tak samo silny w przypadku kobiet i mężczyzn. 
+Lub, że różnice pomiędzy kobietami i mężczyznami w poziomie wiary w spisek żydowski są tak samo silne dla osób o różnych poziomach mentalności spiskowej.
+
+Możemy to sprawdzić dodając do naszego modelu dodatkowy predyktor oznaczający interakcją obu zmiennych.
+
+
+$$
+outcome_i \sim Normal(\mu_i, \sigma) \\
+\mu_i = \beta_1 \times x_1i + \beta_2 \times x_2i + \beta_3 \times x_1i \times x_2i  \\
+\beta \sim Normal(0, 1) \\
+\sigma \sim Student(3, 0, 10)
+$$
+
+Implementacja w `brms` wymaga zmienienia dosłownie 1 znaku.
+
+```{r}
+get_prior(jc_mean ~ gender * cm_mean_z,
+            data = s3)
+```
+
+Ustalmy taki sam rozkład prior dla wszystkich współczynników regresji.
+
+```{r}
+prior3 = prior(normal(0, 1), class = b)
+```
+
+Dopasujmy nasz model.
+
+```{r}
+fit6 <- brm(jc_mean ~ gender * cm_mean_z,
+            data = s3,
+            prior = prior3,
+            seed = 1234)
+```
+
+Sprawdźmy czy współczynnik dla interakcji różni się od 0.
+
+```{r}
+fit6
+```
+
+Ponieważ widzimy, że istniej interakcja pomiędzy płcią a mentalnością spiskową narysujmy ją.
+Związek pomiędzy mentalnością spiskową a wiarą spisek żydowski wydaje się być silniejszy w przypadku kobiet niż w przypadku mężczyzn.
+
+```{r}
+marginal_effects(fit6, "cm_mean_z:gender")
+```
+
+Jeżeli chcemy przetestować tzw. simple slope'y prawdopodobnie najłatwiej to zrobić przy użyciu funkcji `emtrends` z pakietu `emmeans`.
+
+```{r}
+emtrends(fit6, ~gender, var = "cm_mean_z")
+```
+
+
+Co jeżeli interesuje nas przede wszystkim różnica pomiędzy kobietami i mężczyznami, a mentalność spiskową chcielibyśmy traktować jako moderator?
+
+```{r}
+marginal_effects(fit6, "gender:cm_mean_z")
+```
+
+Poprzednia funkcja wyliczyła poziomy moderatora jako średnia +/- 1 odchylenie standardowe.
+Jeżeli chcemy ustalić własne wartości, powinniśmy wstawić dodatkowy argument `int_conditions`.
+
+```{r}
+marginal_effects(fit6, "gender:cm_mean_z", 
+                 int_conditions = data.frame(cm_mean_z = c(-1, 0, 1)))
+```
+
+Również w tym przypadku możemy przeprowadzić analizę simple slope'ów. Ponieważ nasza główna zmienna jest kategorialna, powinniśmy skorzystać z funkcji `emtrends`.
+
+```{r}
+emmeans(fit6, pairwise~gender|cm_mean_z, at = list(cm_mean_z = c(-1,0,1)))
+```
+
+Więcej informacji o tym jak stosować pakiet `emmeans` do dekompozyjcji interakcji znajedziecie pod [tym linkiem](https://stats.idre.ucla.edu/r/seminars/interactions-r/#s3). Jest tam również podany przykład dla interakcji 2 zmiennych ciągłych.
+
+
+## Jeżeli mamy trochę czasu, Twoja kolej:
+
+- Przeprowadź analogiczną analizę moderacji dla zmiennej `rc_mean` - wiary w spisek rosyjski.
