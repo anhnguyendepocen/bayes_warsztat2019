@@ -3,28 +3,643 @@ title: "Regresja i porównywanie średnich"
 output: html_notebook
 ---
 
+# 1. Wprowadzenie do obliczeń bayesowskich w R
+
+W analizach Bayesowskich informacje dotyczące parametrów podsumowuje się przy pomocy różnych rozkładów.
+
+Przykładowo, aby podsumować parametr wskazujący proporcję (lub cokolwiek w przedziale 0-1) stosuje rozkład Beta.
+
+$$
+proporcja \sim Beta(a, b)
+$$
+
+Rysowanie rozkładu Beta.
 ```{r}
 library(tidyverse)
+data <- data.frame(x = seq(0, 1, length.out = 100))
+data %>% 
+  ggplot(aes(x))+
+  stat_function(fun = dbeta,
+                args = list(shape1 = 1,
+                            shape2 = 1),
+                geom = "area",
+                fill = "blue", alpha=0.3)
+```
+
+Spróbuj ustawić inne wartości parametrów (`shape1` i `shape2`) rozkładu Beta. Najlepiej wypróbuj wartości w przedziale (0,5].
+
+```{r}
+data %>% 
+  ggplot(aes(x))+
+  stat_function(fun = dbeta,
+                args = list(shape1 =  ,
+                            shape2 =  ),
+                geom = "area",
+                fill = "blue", alpha=0.3)
 ```
 
 
-## Regresja liniowa z jednym predyktorem
+Zakładając rozkład prior oraz dane, można obliczyć rozkład posterior. W tym przypadku rozkład posterior również będzie miał rozkład Beta, tylko z nowymi wartościami parametrów `shape1` i `shape2`.
+Shape1 (posterior) = shape1 (prior) + liczba sukcesów
+Shape2 (posterior) = shape2 (prior) + liczba porażek
+
+```{r}
+sukcesy = 3
+porazki = 7
+data %>% 
+  ggplot(aes(x))+
+  stat_function(aes(fill = "Prior"),
+                fun = dbeta,
+                args = list(shape1 = 1,
+                            shape2 = 1),
+                geom = "area", alpha=0.3)+
+  stat_function(aes(fill = "Posterior"),
+                fun = dbeta,
+                args = list(shape1 = 1+sukcesy,
+                            shape2 = 1+porazki),
+                geom = "area", alpha=0.3)+
+  scale_fill_manual(values=c("red","blue"))
+```
+
+Spróbuj ustawić swoją liczbę sukcesów i porażek i sprawdź, jak dane modyfikują rozkład prior.
+
+```{r}
+sukcesy = 
+porazki = 
+data %>% 
+  ggplot(aes(x))+
+  stat_function(aes(fill = "Prior"),
+                fun = dbeta,
+                args = list(shape1 = 1,
+                            shape2 = 1),
+                geom = "area", alpha=0.3)+
+  stat_function(aes(fill = "Posterior"),
+                fun = dbeta,
+                args = list(shape1 = 1+sukcesy,
+                            shape2 = 1+porazki),
+                geom = "area", alpha=0.3)+
+  scale_fill_manual(values=c("red","blue"))
+```
+
+# 2. Znajdowanie rozkładu posterior metodą nie-analityczną.
+
+Obliczenia z poprzedniego punktu działają ponieważ ktoś wcześniej za nas znalazł rozwiązanie skomplikowanego równania całkowego. Nie musimy jednak znać rachunku różniczkowego i całkowego, aby stosować metody bayesowskie.
+
+Możemy również zastosować numeryczną aproksymację.
+
+Tworzymy tabelę z sekwencją wszystkich możliwych wartości interesującego nas parametru `p_grid`.
+Następnie tworzy zmienną `prior` zawierającą wagi dla każdego z parametrów. Te wagi tworzą rozkład prior.
+
+```{r}
+# sequence of parameter values
+p_grid = seq(from = 0, to = 1, length.out = 100)
+
+# prior over the sequence of parameter values
+prior = rep(1, 100)
+
+data_grid = tibble(p_grid, prior)
+data_grid
+```
 
 
-## Regresja odporna
+Możemy wyświetlić nasz rozkład na wykresie.
+
+```{r}
+data_grid %>% 
+  ggplot()+
+  geom_col(aes(x = p_grid, y = prior),
+           width = 0.005,
+           colour = "black", 
+           fill = "lightblue")
+```
+
+Dla każdej wartości interesującego nas parametru wyliczamy wartość likelihood, tj. prawdopodbieństwo obserwacji przy założeżonej wartości parametru.
+
+Rozkład posterior powstaje z pomnożenia kolumn `prior` i `likelihood`.
+
+```{r}
+data_grid = data_grid %>% 
+  mutate(likelihood = dbinom(x = 3, size = 10, prob = p_grid)) %>% 
+  mutate(unstd.posterior = prior * likelihood)
+data_grid
+```
+
+Możemy teraz narysować rozkład posterior.
+
+```{r}
+data_grid %>% 
+  ggplot()+
+  geom_col(aes(x = p_grid, y = unstd.posterior),
+           width = 0.005,
+           colour = "black", 
+           fill = "red")
+```
+
+Wartości `unstd.posterior` nie sumują się do 1. Aby je wystandaryzować dzielimy każdą wartość przez sumę wszystkich wartości.
+
+```{r}
+data_grid = data_grid %>% 
+  mutate(posterior = unstd.posterior / sum(unstd.posterior))
+data_grid
+```
+
+Możemy narysować ostateczny kształt rozkładu posterior.
+
+```{r}
+data_grid %>% 
+  ggplot()+
+  geom_col(aes(x = p_grid, y = posterior),
+           width = 0.005,
+           colour = "black", 
+           fill = "pink")
+```
+
+# 3. Symulacje z rozkładu posterior.
+
+Tzw. `grid-approximation` jest łatwą metodą obliczania rozkładu posterior, ale sytuacja komplikuje się przy modelach z większą ilością parametrów.
+
+```{r}
+for (i in 1:5) {
+  cat("Z", i, "parametrem/ami i siatką 100 punktów potrzebujemy", 100^i, "obliczeń.\n")
+}
+```
+
+Dlatego w analizach Bayesowskich zazwyczaj stosuje się metody oparte na symulacjach - głównie tzw. Markov Chain Monte Carlo (MCMC).
+
+Symulacje okazują się również pomocne gdy znamy już kształt rozkładu posterior.
+
+Poniżej losujemy 10000 próbek z naszego rozkładu.
+
+```{r}
+posterior_samples <- sample(
+  x = data_grid$p_grid,
+  prob = data_grid$posterior,
+  size = 10000,
+  replace = TRUE
+)
+```
+
+Aby ułatwić sobie dalszą pracę umieszczamy nasze próbki w ramce danych.
+
+```{r}
+data_samples = tibble(
+  id = 1:length(posterior_samples),
+  prop_profile = posterior_samples
+)
+data_samples
+```
+
+Teraz możemy narysować nasz rozkład.
+
+Przy pomocy wykresu rozrzutu.
+
+```{r}
+data_samples %>% 
+  ggplot()+
+  geom_point(aes(x=id, y=prop_profile), 
+             alpha = 1/4,
+             colour = 'red')
+```
+
+Lub przy pomocy wykresu gęstości (lub histogramu).
+
+```{r}
+data_samples %>% 
+  ggplot()+
+  stat_density(aes(x = prop_profile),
+               fill = "red",
+               colour = "black",
+               alpha = 1/2)+
+  scale_x_continuous(limits = 0:1)
+```
+
+# 4. Podsumowywanie próbek z rozkładu posterior
+
+Aby ułatwić pracę zainstalujmy pakiet `bayestestR`.
+
+```{r}
+#install.packages("bayestestR")
+```
+
+Załadujmy pakiet.
+
+```{r}
+library(bayestestR)
+```
+
+W łatwy sposób możemy znaleźć średnią rozkładu posterior.
+
+```{r}
+data_samples %>% 
+  summarise(srednia=mean(prop_profile))
+```
+
+Mediana.
+
+```{r}
+data_samples %>% 
+  summarise(mediana=median(prop_profile))
+```
+
+Lub modalną, tzw. MAP (maximum a posteriori).
+
+```{r}
+data_samples %>% 
+  summarise(MAP=map_estimate(prop_profile))
+```
 
 
-## Porównywanie średnich
+Możemy również obliczyć na ile prawdopodne jest, że parametr jest poniżej określonej wartości.
 
+```{r}
+data_samples %>% 
+  filter(prop_profile < .5) %>%
+  summarise(prop_profile_less_than_50per = n() / 10000)
+```
+
+Lub w określonym przedziale wartości.
+
+```{r}
+data_samples %>% 
+  filter(prop_profile > .10 & prop_profile < .20) %>%
+  summarise(prop_profile_in_10_20_per = n() / 10000)
+```
+
+## Twoja kolej
+
+- Oblicz na ile prawdopodobne jest, że proporcja osób o określonym profilu jest większa od 0.3.
+```{r}
+
+```
+
+- Oblicz na ile prawdopodobne jest, że proporcja osób o określonym profilu jest w przedziale 0.25 do 0.35.
 ```{r}
 
 ```
 
 
+Przy pomocy pakietu `bayestestR` możemy również przedziały wiarygodności dla określonego parametru.
 
-## Lepsza wersja testu t
+```{r}
+ci(data_samples$prop_profile)
+```
+
+Jeżeli chcemy inną wielkość przedziału, musimy zmienić argument `ci`.
+
+```{r}
+ci(data_samples$prop_profile, ci = .95)
+```
+
+Ciekawą opcją dostępną w pakiecie `bayestestR` jest możliwość utworzenia wykresu na podstawie takiej funkcji.
+
+```{r}
+ci(data_samples$prop_profile, ci = .95) %>% 
+  plot()
+```
+
+Inny powszechnie stosowany rodzaj przedziału to HPDI (highest posterior density interval).
+
+```{r}
+hdi(data_samples$prop_profile)
+```
+
+Tutaj również zmieniamy wielkość przedziału przy pomocy argumentu `ci`.
+```{r}
+hdi(data_samples$prop_profile, ci = .95)
+```
+
+Działa również wykres.
+
+```{r}
+hdi(data_samples$prop_profile, ci = .95) %>% 
+  plot()
+```
 
 
+# 5. Symulacje metodą MCMC.
+
+Losowanie próbek z rozkładu posterior jest proste gdy jest on jednowymiarowy. 
+
+```{r}
+normal_sample <- rnorm(n = 100, mean = 5, sd = 2)
+df <- normal_sample %>% 
+  enframe()
+
+df %>%
+  ggplot()+
+  geom_point(aes(name, value),
+            colour = "purple",
+            alpha = 1/2)+
+  labs(x="Sample ID", y="Value")+
+  theme_bw()
+```
+
+W przypadku wielowymiarowych posterior pojawia się jednak problem. 
+
+O ile czasami możemy zastosować wielowymiarowy rozkład Normalny, nie zawsze jest to najlepsze rozwiazanie.
+
+```{r}
+set.seed(1234)
+MASS::mvrnorm(n = 100, 
+              mu = c(100, 15), 
+              Sigma = matrix(c(50, 20, 20, 50), ncol=2)) %>% 
+  as_tibble() %>% 
+  rename(IQ_mean = V1, IQ_sd = V2) %>% 
+  ggplot() +
+  geom_point(aes(IQ_mean, IQ_sd), alpha = 1/2, colour = "purple") +
+  labs(x="Mean of IQ", y="Standard deviation of IQ")+
+  theme_bw()
+```
 
 
+Rozwiązaniem jest zastosowanie iteracyjnej metody losowania o nazwie MCMC (Markov Chain Monte Carlo).
 
+```{r}
+# start with an empty chain (container) for parameter values
+mcmc_chain <- vector(mode="numeric", length = 100)
+
+# choose some possible parameter value 
+start_val = 0
+
+# set the chosen number as initial (starting) value in the chain 
+mcmc_chain[1] <- start_val
+
+# start a loop over remaining values of the chain (indexes from 2 to 100)
+for(i in 2:100) {
+  # find the current value of the parameter
+  current_value <- mcmc_chain[i - 1]
+  
+  # find a new potential value that slightly deviates from the current value
+  proposal_value <- current_value + rnorm(1, 0, 2)
+  
+  # check which value (current vs. proposal) is more plausible given some constraint (e.g. given the data) and calculate the ratio of probabilities
+  # ratio larger than 1 indictes that the proposal is more plausible
+  # ratio smaller than 1 indicates the the current value more plausible
+  ratio_of_dens <- dnorm(proposal_value, 5, 2) / dnorm(current_value, 5, 2)
+  
+  # draw a uniform number from 0 to 1
+  uniform_number <- runif(1, min = 0, max = 1)
+  
+  # check whether the uniform number is smaller than the minimum of two values: the ratio and 1
+  if(uniform_number < min(ratio_of_dens, 1)) {
+    # if yes: set the next value in the chain to be the proposal
+    mcmc_chain[i] <- proposal_value
+  } else {
+    # if no: set the next value in the chain to be the current value
+    mcmc_chain[i] <- current_value
+  }
+  # in other words: if the ratio is higher than 1 (the proposal is more probable than the current value), we are accepting the proposal as the new value
+  # otherwise (if the ratio is lower than 1), we are accepting the proposal with P(ratio), e.g. if ratio = 0.5, we are accepting the proposal in half of the cases
+  # accordingly, we are staying with the current value with P(1 - ratio)
+}
+  
+
+df <- enframe(mcmc_chain)
+
+df %>% 
+  ggplot()+
+  geom_line(aes(name, value),
+            colour = "purple")+
+  labs(x="Iteration", y="Parameter values")+
+  theme_bw()
+```
+
+Poniższy kod powinien wyprodukować animację, która przedstawi jak działa MCMC.
+
+```{r}
+library(gganimate)
+p <- df %>% 
+  ggplot()+
+  geom_line(aes(name, value),
+            colour = "purple")+
+  labs(x="Iteration",y="Parameter value")+
+  theme_bw()
+
+p +
+  transition_reveal(name)
+```
+
+Usually, the chain needs to pass some number of iteration to converge (i.e. to approach) to the desired distribution. We do not know, when it happens, but in most cases we know that ultimately it will happen.
+To solve this problem:
+- In practical applications, we will need more than 100 samples (usually several thousands). 
+- Furthermore, we will disregard initial values of the chain. These values are most likely not from the posterior distribution. 
+
+In the example below we are drawing 10000 samples, and disregard initial 5000.
+Before running this code set your own starting value (not too far from the value of 5). If the algorithm works, it should give similar answer irrespective of which value you choose.
+
+```{r}
+mcmc_chain <- vector(mode="numeric", length = 10000)
+# set your own starting value
+start_val = 
+mcmc_chain[1] <- start_val
+
+for(i in 2:10000) {
+  current_value <- mcmc_chain[i - 1]
+  proposal_value <- current_value + rnorm(1, 0, 0.5)
+  
+  ratio_of_dens <- dnorm(proposal_value, 5, 2) / dnorm(current_value, 5, 2)
+  
+  uniform_number <- runif(1, min = 0, max = 1)
+  
+  if(uniform_number < min(ratio_of_dens, 1)) {
+    mcmc_chain[i] <- proposal_value
+  } else {
+    mcmc_chain[i] <- current_value
+  }
+}
+
+df <- enframe(mcmc_chain) %>% 
+  slice(5000:n())
+
+df %>% 
+  ggplot()+
+  geom_line(aes(name, value),
+            colour = "purple")+
+  labs(x="Iteration", y="Parameter values")+
+  theme_bw()
+```
+
+## Your turn
+
+In the table below, in the column called `value` you can find values sampled with Metropolis algorithm. They should approximate the Normal distribution with mean 5 and sd 2. Check whether this is the case, i.e. to what extent the mean and sd of samples deviate from the true values. 
+
+```{r}
+df
+```
+
+
+```{r}
+
+```
+
+## What MCMC means?
+
+Metropolis algorithm is an example of a general class of methods known as MCMC = Markov chain Monte Carlo.
+- Monte Carlo is an area of Monaco known for casinos - places known for randomness, chance, and probability. In mathematics, it refers to methods that use drawing random samples to approximate some values (e.g. integrals).
+- Markov chain - refers to Markovian process, i.e. the description of how some values may change. It's use is out of the scope of this course, and is not necessary to understand MCMC. What you need to know is that during the iterations the way how parameter values change resembles Markovian process.
+
+## Several other MCMC algorithms
+
+- Metropolis-Hastings algorithms
+- Gibbs algorithm
+- **Hamiltonian (or Hybrid) Monte Carlo** - we will use this because of its high efficiency
+
+# 3. Introduction to Stan
+
+[Stan](mc-stan.org) is a statistical programming language that allows full Bayesian statistical inference with MCMC sampling (Hamiltonian Monte Carlo and more specifically NUTS = No-U-Turn Sampler). 
+
+Stan models can be run through other softwares such as Stata, Matlab, Python, and R. To run Stan through R, we will use the package called `rstan`.
+
+```{r}
+library(rstan)
+#if you have a laptop with mutlicore CPU and large amount of RAM (at least 8 GB), uncomment the line below
+#options(mc.cores = parallel::detectCores())
+```
+
+To run a Bayesian model in Stan you have to define it through a syntax that resembles C++.
+In the code below note 3 basic blocks (`data`, `parameters`, and `model`):
+- in the `data` block, we are defining known values that will be used in a model (here: number of trials in total and a number of observed vampires)
+- in the `parameters` block, we are defining unknown values that we wish to infer
+- in the `model` block, we are defining how parameters generate data and also the prior distribution of parameters
+
+```{r}
+model_code <- "
+data {
+  int<lower=0> total;
+  int<lower=0> vampires;
+}
+parameters {
+  real<lower=0, upper=1> p_vamp;
+}
+model {
+  p_vamp ~ beta(1, 1);
+  
+  vampires ~ binomial(total, p_vamp);
+}
+"
+```
+
+Before sampling we need to prepare a named `list` with all data that we want to use in our model.
+```{r}
+model_data <- list(total = 10, vampires = 3)
+```
+
+To run the model, we are using a function called `stan`.
+We have to supply the model code and model data. Furthermore, we can set the number of samples (`iter`), how many initial samples to disregard (`warmup`), and how many parallel simulated draws to run (`chains`, you should run at least 2).
+The additional argument `seed` is used to set (pseudo-)random numbers generator to some fixed value. This can be used if you would like to obtain exactly the same result each time you run your model.
+
+The function below will generate 4 x 2000 samples, but it will treat initial 1000 samples in each chain as a warmup. Therefore, the output will have 4000 samples in total. 
+
+```{r}
+model_fit <- stan(
+  model_code = model_code,
+  data = model_data,
+  iter = 2000,
+  warmup = 1000,
+  chains = 4,
+  seed = 1234
+)
+```
+
+Lets see how the first chain traverses through the parameter values. Run the code below only if you have `gganimate` installed. 
+
+```{r}
+posterior <- rstan::extract(model_fit, pars = "p_vamp",
+                     permuted = F, inc_warmup = T)[,1,1]
+p <- posterior %>% 
+  enframe() %>% 
+  ggplot()+
+  geom_line(aes(name, value),
+            colour = "purple")+
+  theme_bw()
+
+p + 
+  transition_reveal(name)
+```
+
+To print basic summaries of the model, just print (with a function `print`) the fitted object. You can decide how precise the output should be (i.e. how many decimal places it should have) with `digits_summary` parameter.
+
+```{r}
+print(model_fit, digits_summary = 3)
+```
+
+Before you make any inference from the posterior, you have to make sure that the sampling procedure proceeded according to some rules.
+
+First, look at the traceplot and see whether all chains traverse around the same parameter range. If yes, the Rhat values (see the output above) should be close to 1 (preferably smaller than 1.01). Higher values indicate some problems with the model - possibly you should run your model with more iterations.
+
+```{r}
+plot(model_fit, plotfun = "trace")
+```
+
+Second, check the autocorrelation plot for each parameter, i.e. how adjacent values of parameters correlate with each other. Ideally, we would like to observe no correlation between adjacent iterations (i.e. we would like to have independent samples).
+High autocorrelation leads to decreased `Effective Sample Size` (see ess in the output above), i.e. small number of independent samples. The more independently sampled values we have, the more precise are our parameter estimates. 
+ESS should be at least 400 to precisely estimate the mean of posterior distribution, but it should be around 4000 to precisely estimate 95% CIs.
+
+```{r}
+plot(model_fit, plotfun = "ac", pars = "p_vamp")
+```
+
+Once we see that these two criteria (i.e. low Rhat and large ESS) are met, we can make inferences from the posterior distribution. In the plot below, we are summarizing the density of our posterior distribution.
+```{r}
+plot(model_fit, show_density = T,
+     ci_level = .95,
+     outer_level = 1)
+```
+
+
+## Your turn
+
+Follow the example below. Run each cell of the code below and check whether you can safely use the sample to draw inferences from this model. 
+
+First, run the code.
+
+```{r}
+model_code2 <- "
+data {
+  int<lower=0> total;
+  int<lower=0> vampires;
+}
+parameters {
+  real<lower=0, upper=1> p_vamp;
+  real<lower=0> a_beta;
+  real<lower=0> b_beta;
+}
+model {
+  p_vamp ~ beta(a_beta, b_beta);
+  
+  vampires ~ binomial(total, p_vamp);
+}
+"
+```
+
+Then, assign the data and run the model.
+
+```{r}
+model_data2 <- list(vampires = 3, total = 10)
+model_fit2 <- stan(
+  model_code = model_code2,
+  data = model_data2,
+  seed = 1234
+)
+```
+
+Check the validity of the sampled values.
+Write up everything that seems suspicious.
+```{r}
+model_fit2
+```
+
+```{r}
+plot(model_fit2, plotfun = "trace")
+```
+
+```{r}
+plot(model_fit2, plotfun = "ac", pars = "p_vamp")
+```
+
+```{r}
+plot(model_fit2, show_density=T,
+     pars = "p_vamp",
+     ci_level = .95,
+     outer_level = 1)
+```

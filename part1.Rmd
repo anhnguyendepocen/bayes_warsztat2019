@@ -1,5 +1,6 @@
 ---
 title: "Wprowadzenie do statystyki Bayesowskiej"
+author: Wiktor Soral
 output: 
   beamer_presentation:
     fig_crop: no
@@ -15,13 +16,13 @@ knitr::opts_chunk$set(echo = FALSE, warning = F, message = F, fig.height = 4, fi
 |            |                                              |
 |------------|----------------------------------------------|
 | D1/10:00   | Wprowadzenie do statystyki Bayesowskiej      |
-| D1/11:45   | Powtórka z R i wprowadzenie do MCMC          |
-| D1/14:00   | brms: regresja prosta i porównywanie średnich|
-| D1/15:45   | brms: regresja wielokrotna + a. moderacji    |
+| D1/11:45   | Powtórka z R                                 |
+| D1/14:00   | Wprowadzenie do MCMC                         |
+| D1/15:45   | brms: regresja prosta i porównywanie średnich|
 |            |                                              |
-| D2/10:00   | brms: Bayesowska ANOVA                       |
-| D2/11:45   | brms: Bayesowski HLM                         |
-| D2/14:00   | brms: Bayesowskie uogólnione modele liniowe  |
+| D2/10:00   | brms: regresja wielokrotna + a. moderacji    |
+| D2/11:45   | brms: Bayesowska ANOVA                       |
+| D2/14:00   | brms: Bayesowski HLM                         |
 | D2/15:45   | Testowanie hipotez i porównywanie modeli     |
 
 ## Opis oprogramowania

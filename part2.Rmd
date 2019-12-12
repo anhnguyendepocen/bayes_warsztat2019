@@ -4,7 +4,282 @@ output: html_notebook
 ---
 
 ```{r}
-library(tidyverse)
-library(haven)
+print("Mój (pierwszy?) skrypt uruchomiony w notatniku RStudio.")
 ```
+
+```{r}
+print("Mój (drugi?) skrypt uruchomiony w notatniku RStudio przy pomocy Ctrl+Shift+Enter.")
+```
+
+# 1. Korzystanie z pomocy
+
+Znajdowanie informacji o funkcji.
+
+```{r}
+?lm
+```
+
+Wyszukiwanie funkcji po słowach kluczowych.
+
+```{r}
+??correlation
+```
+
+Wyszukiwanie funkcji po słowach kluczowych (gdy są złożone z kilku słów).
+
+```{r}
+??`analysis of variance`
+```
+
+
+## Twoja kolej:
+- Do czego służy funkcja `rnorm`?
+```{r}
+
+```
+
+- W jaki sposób przeprowadzić test Wilcoxona?
+```{r}
+
+```
+
+
+# 2. Ładowanie i instalacja pakietów
+
+
+Instalacja nowych pakietów.
+
+```{r}
+install.packages('lme4')
+```
+
+Ładowanie zainstalowanych pakietów.
+
+```{r}
+library(lme4)
+```
+
+
+## Twoja kolej:
+
+- Zainstaluj pakiety `tidyverse` i `haven`.
+```{r}
+
+```
+
+- Załaduj pakiety `tidyverse` i `haven`.
+```{r}
+
+```
+
+
+# 3. Praca ze zbiorami danych
+
+Ładowanie zbioru danych. 
+
+```{r}
+
+```
+
+
+Szybki podgląd zbioru danych.
+
+```{r} 
+class3_data %>% 
+  glimpse()
+```
+
+Wybieranie poszczególnych zmiennych.
+
+```{r}
+class3_data$Film
+```
+
+Lub w stylu `tidyverse`.
+
+```{r}
+class3_data %>% 
+  pull(Film)
+```
+
+Tworzenie tabeli częstości.
+
+```{r}
+class3_data %>% 
+  count(Film)
+```
+
+Filtrowanie zbioru po zmiennej.
+
+```{r}
+class3_data %>% 
+  filter(Film == "Frontline")
+```
+
+Świągaka z operatorów logicznych:
+
+- == - równe
+- != - różne od
+- > - większe niż
+- < - mniejsze niż
+- >= - większe lub równie
+- <= - mniejsze lub równe
+- & - iloczyn logiczny (ORAZ)
+- | - suma logiczny (LUB)
+
+
+Tworzenie podzbiorów zmiennych.
+
+```{r}
+class3_data %>% 
+  select(Film, EA2)
+```
+
+Łączenie operacji.
+
+```{r}
+class3_data %>% 
+  filter(Film == "Frontline") %>% 
+  select(Film, EA2)
+```
+
+Podsumowywanie zmiennych (np. średnie, odchylenia standardowe).
+
+```{r}
+class3_data %>% 
+  summarize(mean(EA2), sd(EA2), mean(TA2), sd(TA2))
+```
+
+Podsumowywanie zmiennych według zmiennych kategorialnych.
+
+```{r}
+class3_data %>% 
+  group_by(Film) %>% 
+  summarise(mean(EA2), sd(EA2), mean(TA2), sd(TA2))
+```
+
+Tworzenie nowych zmiennych.
+
+```{r}
+class3_data %>% 
+  mutate(sumEATA = EA2 + TA2)
+```
+
+Aby zapisać nowe zmienne konieczne jest przypisanie wyniku do nowego zbioru (lub nadpisanie na obecny).
+
+```{r}
+new_data = class3_data %>% 
+  mutate(sumEATA = EA2 + TA2)
+new_data
+```
+
+
+## Twoja kolej
+- Oblicz nową zmienną: różnicę pomiędzy zmiennymi PA2 i NA2. Nazwij ją jako DiffA.
+```{r}
+
+```
+
+- Podsumuj średnie zmiennych PA2, NA2 i DiffA osobno dla każdej wartości zmiennej Film.
+```{r}
+
+```
+
+- Z poprzedniego podsumowania wyświetl tylko dane dla filmów 'Frontline' i 'Halloween'.
+```{r}
+
+```
+
+
+
+# 4. Podstawowe wykresy z `ggplot2`
+
+Aby utworzyć wykres w `ggplot2` musimy posiadać dane w postaci ramki danych - `data.frame`.
+
+```{r}
+class3_data %>% 
+  count(Film)
+```
+
+Podstawą funkcją w `ggplot2` jest funkcja `ggplot`.
+
+```{r}
+class3_data %>% 
+  count(Film) %>% 
+  ggplot()
+```
+
+Do podstawowej figury możemy dodawać różne elementy graficzne, np. `geom_col` utworzy wykres kolumnowy.
+
+```{r}
+class3_data %>% 
+  count(Film) %>% 
+  ggplot() + 
+  geom_col(aes(x = Film, y = n))
+```
+
+Tworzenie histogramu.
+
+```{r}
+class3_data %>% 
+  ggplot()+
+  geom_histogram(aes(x=EA2))
+```
+
+Tworzenie sformatowanego histogramu z dodaną krzywą rozkładu Normalnego.
+
+```{r}
+class3_data %>% 
+  ggplot()+
+  geom_histogram(aes(x=EA2, y=..density..), bins = 15, fill="white", colour="black")+
+  stat_function(fun = dnorm, args = list(mean = mean(class3_data$EA2), 
+                                         sd = sd(class3_data$EA2)),
+                colour = "blue2")
+```
+
+Tworzenie wykresu rozrzutu.
+
+```{r}
+class3_data %>% 
+  ggplot()+
+  geom_point(aes(x = EA2, y = TA2))
+```
+
+Tworzenie wykresu rozrzutu z dodaną linią regresji.
+
+```{r}
+class3_data %>% 
+  ggplot(aes(x=EA2, y=TA2))+
+  geom_point()+
+  geom_smooth(colour = "blue", method = "lm")
+```
+
+Tworzenie wykresu skrzynkowego.
+```{r}
+class3_data %>% 
+  ggplot()+
+  geom_boxplot(aes(x=Film, y=TA2))
+```
+
+Tworzenie wykresu kolumnowego ze słupkami błędu.
+```{r}
+class3_data %>% 
+  group_by(Film) %>% 
+  summarise(mTA2 = mean(TA2), se = sd(TA2)/sqrt(n())) %>% 
+  ggplot(aes(x= Film, y=mTA2))+
+  geom_col(aes(fill=Film))+
+  geom_errorbar(aes(ymin = mTA2 - se, ymax = mTA2 + se), width = 0.2)+
+  guides(fill=FALSE)
+```
+
+## Your turn
+- Narysuj histogram zmiennej PA2.
+```{r}
+
+```
+- Porównaj wartości zmiennej PA2 dla różnych filmów przy użyciu wykresu skrzynkowego.
+```{r}
+
+```
+
 
