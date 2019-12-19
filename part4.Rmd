@@ -376,4 +376,4 @@ s3 %>%
 
 ## Jeżeli mamy czas, Twoja kolej:
 
-- Przeprowadzaź analogiczną analizę przy użyciu rozkładu t Studenta.
+- Przeprowadź analogiczną analizę przy użyciu rozkładu t Studenta.

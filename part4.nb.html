@@ -1762,34 +1762,65 @@ outcome_i \sim Normal(\mu_i, \sigma) \\
 <p>Ten rozkład jest względnie agnostyczny względem współczynników regresji.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2dwbG90KGFlcyh4PXgpLCBkYXRhID0gZGF0YS5mcmFtZSh4PXNlcSgtNTAsNTAsIGxlbmd0aC5vdXQgPSA1MCkpKStcbiAgc3RhdF9mdW5jdGlvbihmdW49ZG5vcm0sIGFyZ3MgPSBsaXN0KG1lYW4gPSAwLCBzZCA9IDEwKSwgY29sb3VyPVwiYmx1ZVwiKStcbiAgbGFicyh0aXRsZSA9IFwiUHJpb3IgZGlzdHJpYnV0aW9uIGZvciByZWdyZXNzaW9uIHdlaWdodHNcIiwgeCA9IFwiYmV0YVwiLCB5PVwiXCIpXG5gYGAifQ== -->
-<pre class="r"><code>ggplot(aes(x=x), data = data.frame(x=seq(-50,50, length.out = 50)))+
-  stat_function(fun=dnorm, args = list(mean = 0, sd = 10), colour=&quot;blue&quot;)+
-  labs(title = &quot;Prior distribution for regression weights&quot;, x = &quot;beta&quot;, y=&quot;&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Z kolei połówkowy rozkład t Studenta jest względnie agnostyczny względem odchylenia standardowego reszt regresji.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZHNjYWxlZF90IDwtIGZ1bmN0aW9uKHgsIHNjLCBkZil7XG4gIGR0KHgvc2MsIGRmPWRmKVxufVxuZ2dwbG90KGFlcyh4PXgpLCBkYXRhID0gZGF0YS5mcmFtZSh4PXNlcSgwLDUwLCBsZW5ndGgub3V0ID0gNTApKSkrXG4gIHN0YXRfZnVuY3Rpb24oZnVuPWRzY2FsZWRfdCwgYXJncyA9IGxpc3QoZGY9Mywgc2M9MTApLCBjb2xvdXI9XCJibHVlXCIpK1xuICBsYWJzKHRpdGxlID0gXCJQcmlvciBkaXN0cmlidXRpb24gZm9yIHN0YW5kYXJkIGRldmlhdGlvbiBvZiByZXNpZHVhbHNcIiwgeCA9IFwic2lnbWFcIiwgeT1cIlwiKVxuYGBgIn0= -->
-<pre class="r"><code>dscaled_t &lt;- function(x, sc, df){
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZ2dwbG90KGFlcyh4PXgpLCBkYXRhID0gZGF0YS5mcmFtZSh4PXNlcSgtNTAsNTAsIGxlbmd0aC5vdXQgPSA1MCkpKStcbiAgc3RhdF9mdW5jdGlvbihmdW49ZG5vcm0sIGFyZ3MgPSBsaXN0KG1lYW4gPSAwLCBzZCA9IDEwKSwgY29sb3VyPVxcYmx1ZVxcKStcbiAgbGFicyh0aXRsZSA9IFxcUHJpb3IgZGlzdHJpYnV0aW9uIGZvciByZWdyZXNzaW9uIHdlaWdodHNcXCwgeCA9IFxcYmV0YVxcLCB5PVxcXFwpXG5gYGBcbmBgYCJ9 -->
+<pre class="r"><code>```r
+ggplot(aes(x=x), data = data.frame(x=seq(-50,50, length.out = 50)))+
+  stat_function(fun=dnorm, args = list(mean = 0, sd = 10), colour=\blue\)+
+  labs(title = \Prior distribution for regression weights\, x = \beta\, y=\\)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Z kolei połówkowy rozkład t Studenta jest względnie agnostyczny względem odchylenia standardowego reszt regresji.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZHNjYWxlZF90IDwtIGZ1bmN0aW9uKHgsIHNjLCBkZil7XG4gIGR0KHgvc2MsIGRmPWRmKVxufVxuZ2dwbG90KGFlcyh4PXgpLCBkYXRhID0gZGF0YS5mcmFtZSh4PXNlcSgwLDUwLCBsZW5ndGgub3V0ID0gNTApKSkrXG4gIHN0YXRfZnVuY3Rpb24oZnVuPWRzY2FsZWRfdCwgYXJncyA9IGxpc3QoZGY9Mywgc2M9MTApLCBjb2xvdXI9XFxibHVlXFwpK1xuICBsYWJzKHRpdGxlID0gXFxQcmlvciBkaXN0cmlidXRpb24gZm9yIHN0YW5kYXJkIGRldmlhdGlvbiBvZiByZXNpZHVhbHNcXCwgeCA9IFxcc2lnbWFcXCwgeT1cXFxcKVxuYGBgXG5gYGAifQ== --&gt;
+
+```r
+```r
+dscaled_t &lt;- function(x, sc, df){
   dt(x/sc, df=df)
 }
 ggplot(aes(x=x), data = data.frame(x=seq(0,50, length.out = 50)))+
-  stat_function(fun=dscaled_t, args = list(df=3, sc=10), colour=&quot;blue&quot;)+
-  labs(title = &quot;Prior distribution for standard deviation of residuals&quot;, x = &quot;sigma&quot;, y=&quot;&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="pierwszy-model-w-brms" class="section level1">
-<h1>2. Pierwszy model w brms</h1>
-<p>Przed stworzeniem naszego pierwszego modelu zainstalujmy pakiet <code>brms</code></p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuI2luc3RhbGwucGFja2FnZXMoJ2JybXMnKVxuYGBgXG5gYGAifQ== -->
-<p><code>r</code>r #install.packages(‘brms’)</p>
+  stat_function(fun=dscaled_t, args = list(df=3, sc=10), colour=\blue\)+
+  labs(title = \Prior distribution for standard deviation of residuals\, x = \sigma\, y=\\)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+# 2. Pierwszy model w brms
+
+Przed stworzeniem naszego pierwszego modelu zainstalujmy pakiet `brms`
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuYGBgclxuI2luc3RhbGwucGFja2FnZXMoJ2JybXMnKVxuYGBgXG5gYGBcbmBgYCJ9 --&gt;
+
+```r
+```r
+```r
+#install.packages(&#39;brms&#39;)</code></pre>
 <pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
@@ -1797,21 +1828,25 @@ ggplot(aes(x=x), data = data.frame(x=seq(0,50, length.out = 50)))+
 <p>Załadujmy pakiety <code>tidyverse</code>, <code>haven</code> i <code>brms</code>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5saWJyYXJ5KGhhdmVuKVxubGlicmFyeShicm1zKVxuYGBgXG5gYGAifQ== -->
-<p><code>r</code>r library(tidyverse) library(haven) library(brms)</p>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5saWJyYXJ5KGhhdmVuKVxubGlicmFyeShicm1zKVxuYGBgXG5gYGBcbmBgYCJ9 -->
+<pre class="r"><code>```r
+```r
+library(tidyverse)
+library(haven)
+library(brms)</code></pre>
 <pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoixYFhZG93YW5pZSB3eW1hZ2FuZWdvIHBha2lldHU6IFJjcHBcblJlZ2lzdGVyZWQgUzMgbWV0aG9kIG92ZXJ3cml0dGVuIGJ5ICdodG1sd2lkZ2V0cyc6XG4gIG1ldGhvZCAgICAgICAgICAgZnJvbSAgICAgICAgIFxuICBwcmludC5odG1sd2lkZ2V0IHRvb2xzOnJzdHVkaW9cblJlZ2lzdGVyZWQgUzMgbWV0aG9kIG92ZXJ3cml0dGVuIGJ5ICd4dHMnOlxuICBtZXRob2QgICAgIGZyb21cbiAgYXMuem9vLnh0cyB6b28gXG5Mb2FkaW5nICdicm1zJyBwYWNrYWdlICh2ZXJzaW9uIDIuMTAuMCkuIFVzZWZ1bCBpbnN0cnVjdGlvbnNcbmNhbiBiZSBmb3VuZCBieSB0eXBpbmcgaGVscCgnYnJtcycpLiBBIG1vcmUgZGV0YWlsZWQgaW50cm9kdWN0aW9uXG50byB0aGUgcGFja2FnZSBpcyBhdmFpbGFibGUgdGhyb3VnaCB2aWduZXR0ZSgnYnJtc19vdmVydmlldycpLlxuXG5Eb8WCxIVjemFuaWUgcGFraWV0dTog4oCYYnJtc+KAmVxuXG5OYXN0xJlwdWrEhWN5IG9iaWVrdCB6b3N0YcWCIHpha3J5dHkgeiDigJhwYWNrYWdlOnJzdGFu4oCZOlxuXG4gICAgbG9vXG4ifQ== -->
 <pre><code>Ładowanie wymaganego pakietu: Rcpp
-Registered S3 method overwritten by 'htmlwidgets':
+Registered S3 method overwritten by &#39;htmlwidgets&#39;:
   method           from         
   print.htmlwidget tools:rstudio
-Registered S3 method overwritten by 'xts':
+Registered S3 method overwritten by &#39;xts&#39;:
   method     from
   as.zoo.xts zoo 
-Loading 'brms' package (version 2.10.0). Useful instructions
-can be found by typing help('brms'). A more detailed introduction
-to the package is available through vignette('brms_overview').
+Loading &#39;brms&#39; package (version 2.10.0). Useful instructions
+can be found by typing help(&#39;brms&#39;). A more detailed introduction
+to the package is available through vignette(&#39;brms_overview&#39;).
 
 Dołączanie pakietu: ‘brms’
 
@@ -1823,17 +1858,35 @@ Następujący obiekt został zakryty z ‘package:rstan’:
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVhbF9kYXRhIDwtIHJlYWRfc2F2KFwiYmFtX2NsYXNzN19kYXRhLnNhdlwiKVxuZ2xpbXBzZShyZWFsX2RhdGEpXG5gYGAifQ== -->
-<pre class="r"><code>real_data &lt;- read_sav(&quot;bam_class7_data.sav&quot;)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxucmVhbF9kYXRhIDwtIHJlYWRfc2F2KFxcYmFtX2NsYXNzN19kYXRhLnNhdlxcKVxuZ2xpbXBzZShyZWFsX2RhdGEpXG5gYGBcbmBgYCJ9 -->
+<pre class="r"><code>```r
+real_data &lt;- read_sav(\bam_class7_data.sav\)
 glimpse(real_data)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Przed włączeniem predyktorów do analiz w <code>brms</code> zalecane (niezbędne) jest ich wystandaryzowanie.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxucmVhbF9kYXRhIDwtIHJlYWxfZGF0YSAlPiUgXG4gIG11dGF0ZSh6RkJLID0gKEZCSyAtIG1lYW4oRkJLLCBuYS5ybT1UKSkgLyBzZChGQkssIG5hLnJtPVQpIClcbmBgYFxuYGBgIn0= -->
-<p><code>r</code>r real_data &lt;- real_data %&gt;% mutate(zFBK = (FBK - mean(FBK, na.rm=T)) / sd(FBK, na.rm=T) )</p>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Przed włączeniem predyktorów do analiz w `brms` zalecane (niezbędne) jest ich wystandaryzowanie.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuYGBgclxucmVhbF9kYXRhIDwtIHJlYWxfZGF0YSAlPiUgXG4gIG11dGF0ZSh6RkJLID0gKEZCSyAtIG1lYW4oRkJLLCBuYS5ybT1UKSkgLyBzZChGQkssIG5hLnJtPVQpIClcbmBgYFxuYGBgXG5gYGAifQ== --&gt;
+
+```r
+```r
+```r
+real_data &lt;- real_data %&gt;% 
+  mutate(zFBK = (FBK - mean(FBK, na.rm=T)) / sd(FBK, na.rm=T) )</code></pre>
 <pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
@@ -1841,92 +1894,164 @@ glimpse(real_data)</code></pre>
 <p>Warto również spojrzeć na wykres, aby upewnić się, że nasz model ma sens.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVhbF9kYXRhICU+JSBcbiAgZ2dwbG90KGFlcyh6RkJLLCBzdW1Qcm8pKStcbiAgZ2VvbV9qaXR0ZXIoKStcbiAgbGFicyh4PVwiRmVlbGluZ3Mgb2YgbGFjayBvZiBjb250cm9sICh6LXNjb3JlKVwiLCB5PVwiU3VtIG9mIHBlcnNvbmFsIHByb2plY3RzXCIpK1xuICBzY2FsZV95X2NvbnRpbnVvdXMoYnJlYWtzPTA6MTApXG5gYGAifQ== -->
-<pre class="r"><code>real_data %&gt;% 
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxucmVhbF9kYXRhICU+JSBcbiAgZ2dwbG90KGFlcyh6RkJLLCBzdW1Qcm8pKStcbiAgZ2VvbV9qaXR0ZXIoKStcbiAgbGFicyh4PVxcRmVlbGluZ3Mgb2YgbGFjayBvZiBjb250cm9sICh6LXNjb3JlKVxcLCB5PVxcU3VtIG9mIHBlcnNvbmFsIHByb2plY3RzXFwpK1xuICBzY2FsZV95X2NvbnRpbnVvdXMoYnJlYWtzPTA6MTApXG5gYGBcbmBgYCJ9 -->
+<pre class="r"><code>```r
+real_data %&gt;% 
   ggplot(aes(zFBK, sumPro))+
   geom_jitter()+
-  labs(x=&quot;Feelings of lack of control (z-score)&quot;, y=&quot;Sum of personal projects&quot;)+
+  labs(x=\Feelings of lack of control (z-score)\, y=\Sum of personal projects\)+
   scale_y_continuous(breaks=0:10)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Modelowanie w pakiecie <code>brms</code> jest bardzo proste.</p>
-<pre><code>brm(formula = PREDICTED_VARIABLE ~ PREDICTORS,
-    data = NAME_OF_DATA_FRAME,
-    prior = PRIOR_DISTRIBUTION,
-    family = LIKELIHOOD_DISTRIBUTION)</code></pre>
-<p>Część parametrów ma już nadane nieinformatywne rozkłady prior.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2V0X3ByaW9yKHN1bVBybyB+IHpGQkssIFxuICAgICAgICAgIGRhdGEgPSByZWFsX2RhdGEpXG5gYGAifQ== -->
-<pre class="r"><code>get_prior(sumPro ~ zFBK, 
-          data = real_data)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Przypiszmy parametrowi współczynnika regresji Normaly rozkład prior, ze średnią 0 i odchylenie standardowym 10.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpb3JfcmVnX3dlaWdodHMgPC0gcHJpb3Iobm9ybWFsKDAsIDEwKSwgY2xhc3MgPSBiKVxucHJpb3JfcmVnX3dlaWdodHNcbmBgYCJ9 -->
-<pre class="r"><code>prior_reg_weights &lt;- prior(normal(0, 10), class = b)
-prior_reg_weights</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Możemy teraz spróbować dopasować nasz model.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml0MSA8LSBicm0oc3VtUHJvIH4gekZCSyxcbiAgICAgICAgICAgIGRhdGEgPSByZWFsX2RhdGEsXG4gICAgICAgICAgICBwcmlvciA9IHByaW9yX3JlZ193ZWlnaHRzLFxuICAgICAgICAgICAgZmFtaWx5ID0gZ2F1c3NpYW4oKSlcbmBgYCJ9 -->
-<pre class="r"><code>fit1 &lt;- brm(sumPro ~ zFBK,
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Modelowanie w pakiecie `brms` jest bardzo proste.
+</code></pre>
+<p>brm(formula = PREDICTED_VARIABLE ~ PREDICTORS, data = NAME_OF_DATA_FRAME, prior = PRIOR_DISTRIBUTION, family = LIKELIHOOD_DISTRIBUTION)</p>
+<pre><code>
+Część parametrów ma już nadane nieinformatywne rozkłady prior.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZml0MSA8LSBicm0oc3VtUHJvIH4gekZCSyxcbiAgICAgICAgICAgIGRhdGEgPSByZWFsX2RhdGEsXG4gICAgICAgICAgICBwcmlvciA9IHByaW9yX3JlZ193ZWlnaHRzLFxuICAgICAgICAgICAgZmFtaWx5ID0gZ2F1c3NpYW4oKSlcbmBgYFxuYGBgIn0= --&gt;
+
+```r
+```r
+fit1 &lt;- brm(sumPro ~ zFBK,
             data = real_data,
             prior = prior_reg_weights,
             family = gaussian())</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Większość interesujących nas informacji zawarta jest w podstawowym wydruku. Należy uważnie sprawdzać kolumny Rhat, Bulk_ESS i Tail_ESS. Informują one o jakości symulacji MCMC. Rhat dla wszystkich parametrów powinno być mniejsze niż 1.01. Bulk_ESS i Tail_ESS powinny wynosić przyjnajmniej 400.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml0MVxuYGBgIn0= -->
-<pre class="r"><code>fit1</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Dodatkowo, możemy sprawdzić wartość <span class="math inline">\(R^2\)</span>.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYmF5ZXNfUjIoZml0MSlcbmBgYCJ9 -->
-<pre class="r"><code>bayes_R2(fit1)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Oraz narysować predykcje naszego modelu.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWFyZ2luYWxfZWZmZWN0cyhmaXQxLCBcInpGQktcIiwgc3BhZ2hldHRpID0gVCwgbnNhbXBsZXMgPSA1MClcbmBgYCJ9 -->
-<pre class="r"><code>marginal_effects(fit1, &quot;zFBK&quot;, spaghetti = T, nsamples = 50)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Poniżej ten sam wykres, z dodatkowymi opcjami.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWFyZ2luYWxfZWZmZWN0cyhmaXQxLCBcInpGQktcIiwgc3BhZ2hldHRpID0gVCwgbnNhbXBsZXMgPSAzMDApICU+JSBcbiAgcGxvdChwb2ludHMgPSBULCBwb2ludF9hcmdzID0gbGlzdCh3aWR0aCA9IDAuMiwgaGVpZ2h0ID0gMC4yKSwgcGxvdD1GKSAlPiUgXG4gIC5bWzFdXSArXG4gIGxhYnMoeD1cIkZlZWxpbmdzIG9mIGxhY2sgb2YgY29udHJvbCAoei1zY29yZSlcIiwgeT1cIlN1bSBvZiBwZXJzb25hbCBwcm9qZWN0c1wiKVxuYGBgIn0= -->
-<pre class="r"><code>marginal_effects(fit1, &quot;zFBK&quot;, spaghetti = T, nsamples = 300) %&gt;% 
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Przypiszmy parametrowi współczynnika regresji Normaly rozkład prior, ze średnią 0 i odchylenie standardowym 10.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZml0MVxuYGBgXG5gYGAifQ== --&gt;
+
+```r
+```r
+fit1</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Możemy teraz spróbować dopasować nasz model.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuYmF5ZXNfUjIoZml0MSlcbmBgYFxuYGBgIn0= --&gt;
+
+```r
+```r
+bayes_R2(fit1)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Większość interesujących nas informacji zawarta jest w podstawowym wydruku.
+Należy uważnie sprawdzać kolumny Rhat, Bulk_ESS i Tail_ESS. Informują one o jakości symulacji MCMC.
+Rhat dla wszystkich parametrów powinno być mniejsze niż 1.01.
+Bulk_ESS i Tail_ESS powinny wynosić przyjnajmniej 400.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWFyZ2luYWxfZWZmZWN0cyhmaXQxLCBcXHpGQktcXCwgc3BhZ2hldHRpID0gVCwgbnNhbXBsZXMgPSA1MClcbmBgYFxuYGBgIn0= --&gt;
+
+```r
+```r
+marginal_effects(fit1, \zFBK\, spaghetti = T, nsamples = 50)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Dodatkowo, możemy sprawdzić wartość $R^2$.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWFyZ2luYWxfZWZmZWN0cyhmaXQxLCBcXHpGQktcXCwgc3BhZ2hldHRpID0gVCwgbnNhbXBsZXMgPSAzMDApICU+JSBcbiAgcGxvdChwb2ludHMgPSBULCBwb2ludF9hcmdzID0gbGlzdCh3aWR0aCA9IDAuMiwgaGVpZ2h0ID0gMC4yKSwgcGxvdD1GKSAlPiUgXG4gIC5bWzFdXSArXG4gIGxhYnMoeD1cXEZlZWxpbmdzIG9mIGxhY2sgb2YgY29udHJvbCAoei1zY29yZSlcXCwgeT1cXFN1bSBvZiBwZXJzb25hbCBwcm9qZWN0c1xcKVxuYGBgXG5gYGAifQ== --&gt;
+
+```r
+```r
+marginal_effects(fit1, \zFBK\, spaghetti = T, nsamples = 300) %&gt;% 
   plot(points = T, point_args = list(width = 0.2, height = 0.2), plot=F) %&gt;% 
   .[[1]] +
-  labs(x=&quot;Feelings of lack of control (z-score)&quot;, y=&quot;Sum of personal projects&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="odporna-regresja-liniowa." class="section level1">
-<h1>3. Odporna regresja liniowa.</h1>
-<p>Czasami w naszych danych będą pojawiały się odstające obserwacje (outliery).</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVhbF9kYXRhJHN1bVByb091dCA8LSByZWFsX2RhdGEkc3VtUHJvXG5yZWFsX2RhdGEkc3VtUHJvT3V0WzIwXSA8LSAyMFxucmVhbF9kYXRhJHN1bVByb091dFszNF0gPC0gMThcbnJlYWxfZGF0YSRzdW1Qcm9PdXRbNDldIDwtIDE2XG5cbnJlYWxfZGF0YSAlPiUgXG4gIGdncGxvdChhZXMoekZCSywgc3VtUHJvT3V0KSkrXG4gIGdlb21faml0dGVyKCkrXG4gIGxhYnMoeD1cIkZlZWxpbmdzIG9mIGxhY2sgb2YgY29udHJvbCAoei1zY29yZSlcIiwgeT1cIlN1bSBvZiBwZXJzb25hbCBwcm9qZWN0cyAod2l0aCBmYWtlIG91dGxpZXJzKVwiKVxuYGBgIn0= -->
-<pre class="r"><code>real_data$sumProOut &lt;- real_data$sumPro
+  labs(x=\Feelings of lack of control (z-score)\, y=\Sum of personal projects\)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Oraz narysować predykcje naszego modelu.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxucmVhbF9kYXRhJHN1bVByb091dCA8LSByZWFsX2RhdGEkc3VtUHJvXG5yZWFsX2RhdGEkc3VtUHJvT3V0WzIwXSA8LSAyMFxucmVhbF9kYXRhJHN1bVByb091dFszNF0gPC0gMThcbnJlYWxfZGF0YSRzdW1Qcm9PdXRbNDldIDwtIDE2XG5cbnJlYWxfZGF0YSAlPiUgXG4gIGdncGxvdChhZXMoekZCSywgc3VtUHJvT3V0KSkrXG4gIGdlb21faml0dGVyKCkrXG4gIGxhYnMoeD1cXEZlZWxpbmdzIG9mIGxhY2sgb2YgY29udHJvbCAoei1zY29yZSlcXCwgeT1cXFN1bSBvZiBwZXJzb25hbCBwcm9qZWN0cyAod2l0aCBmYWtlIG91dGxpZXJzKVxcKVxuYGBgXG5gYGAifQ== --&gt;
+
+```r
+```r
+real_data$sumProOut &lt;- real_data$sumPro
 real_data$sumProOut[20] &lt;- 20
 real_data$sumProOut[34] &lt;- 18
 real_data$sumProOut[49] &lt;- 16
@@ -1934,166 +2059,438 @@ real_data$sumProOut[49] &lt;- 16
 real_data %&gt;% 
   ggplot(aes(zFBK, sumProOut))+
   geom_jitter()+
-  labs(x=&quot;Feelings of lack of control (z-score)&quot;, y=&quot;Sum of personal projects (with fake outliers)&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Sprawdźmy jak radzi sobie z taką sytuacją standardowy model.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml0MiA8LSBicm0oc3VtUHJvT3V0IH4gekZCSyxcbiAgICAgICAgICAgIGRhdGEgPSByZWFsX2RhdGEsXG4gICAgICAgICAgICBwcmlvciA9IHByaW9yX3JlZ193ZWlnaHRzLFxuICAgICAgICAgICAgZmFtaWx5ID0gZ2F1c3NpYW4oKSlcbmBgYCJ9 -->
-<pre class="r"><code>fit2 &lt;- brm(sumProOut ~ zFBK,
+  labs(x=\Feelings of lack of control (z-score)\, y=\Sum of personal projects (with fake outliers)\)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Poniżej ten sam wykres, z dodatkowymi opcjami. 
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZml0MiA8LSBicm0oc3VtUHJvT3V0IH4gekZCSyxcbiAgICAgICAgICAgIGRhdGEgPSByZWFsX2RhdGEsXG4gICAgICAgICAgICBwcmlvciA9IHByaW9yX3JlZ193ZWlnaHRzLFxuICAgICAgICAgICAgZmFtaWx5ID0gZ2F1c3NpYW4oKSlcbmBgYFxuYGBgIn0= --&gt;
+
+```r
+```r
+fit2 &lt;- brm(sumProOut ~ zFBK,
             data = real_data,
             prior = prior_reg_weights,
             family = gaussian())</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Porównajmy wynik z modelem <code>fit1</code>.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml0MlxuYGBgIn0= -->
-<pre class="r"><code>fit2</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Sprawdźmy zależność na wykresie.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWFyZ2luYWxfZWZmZWN0cyhmaXQyLCBcInpGQktcIiwgc3BhZ2hldHRpID0gVCwgbnNhbXBsZXMgPSAzMDApICU+JSBcbiAgcGxvdChwb2ludHMgPSBULFxuICAgICAgIHBvaW50X2FyZ3MgPSBsaXN0KHdpZHRoID0gMC4yLCBoZWlnaHQgPSAwLjIpKSAlPiUgXG4gIC5bWzFdXSArXG4gIGxhYnMoeD1cIkZlZWxpbmdzIG9mIGxhY2sgb2YgY29udHJvbCAoei1zY29yZSlcIiwgeT1cIlN1bSBvZiBwZXJzb25hbCBwcm9qZWN0cyAod2l0aCBvdXRsaWVycylcIilcbmBgYCJ9 -->
-<pre class="r"><code>marginal_effects(fit2, &quot;zFBK&quot;, spaghetti = T, nsamples = 300) %&gt;% 
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+
+
+
+# 3. Odporna regresja liniowa.
+
+Czasami w naszych danych będą pojawiały się odstające obserwacje (outliery).
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZml0MlxuYGBgXG5gYGAifQ== --&gt;
+
+```r
+```r
+fit2</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+
+Sprawdźmy jak radzi sobie z taką sytuacją standardowy model.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWFyZ2luYWxfZWZmZWN0cyhmaXQyLCBcXHpGQktcXCwgc3BhZ2hldHRpID0gVCwgbnNhbXBsZXMgPSAzMDApICU+JSBcbiAgcGxvdChwb2ludHMgPSBULFxuICAgICAgIHBvaW50X2FyZ3MgPSBsaXN0KHdpZHRoID0gMC4yLCBoZWlnaHQgPSAwLjIpKSAlPiUgXG4gIC5bWzFdXSArXG4gIGxhYnMoeD1cXEZlZWxpbmdzIG9mIGxhY2sgb2YgY29udHJvbCAoei1zY29yZSlcXCwgeT1cXFN1bSBvZiBwZXJzb25hbCBwcm9qZWN0cyAod2l0aCBvdXRsaWVycylcXClcbmBgYFxuYGBgIn0= --&gt;
+
+```r
+```r
+marginal_effects(fit2, \zFBK\, spaghetti = T, nsamples = 300) %&gt;% 
   plot(points = T,
        point_args = list(width = 0.2, height = 0.2)) %&gt;% 
   .[[1]] +
-  labs(x=&quot;Feelings of lack of control (z-score)&quot;, y=&quot;Sum of personal projects (with outliers)&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>W przypadku modeli bayesowskich nie musimy zakładać, że rozkład reszt jest Normalny. Może on mieć np. rozkład t Studenta.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2dwbG90KGRhdGE9ZGF0YS5mcmFtZSh4PXNlcSgtNSwgNSwgbGVuZ3RoLm91dCA9IDEwMCkpLCBtYXBwaW5nID0gYWVzKHg9eCkpK1xuICBzdGF0X2Z1bmN0aW9uKGFlcyhjb2xvdXIgPSBcIk5vcm1hbCBsaWtlbGlob29kXCIpLFxuICAgICAgICAgICAgICAgIGZ1biA9IGRub3JtLCBhcmdzID0gbGlzdChtZWFuID0gMCwgc2Q9MSkpK1xuICBzdGF0X2Z1bmN0aW9uKGFlcyhjb2xvdXIgPSBcIlN0dWRlbnQgbGlrZWxpaG9vZCAoZGY9MzApXCIpLFxuICAgICAgICAgICAgICAgIGZ1biA9IGR0LCBhcmdzID0gbGlzdChkZiA9IDMwKSkrXG4gIHN0YXRfZnVuY3Rpb24oYWVzKGNvbG91ciA9IFwiU3R1ZGVudCBsaWtlbGlob29kIChkZj0zKVwiKSxcbiAgICAgICAgICAgICAgICBmdW4gPSBkdCwgYXJncyA9IGxpc3QoZGYgPSAzKSkrXG4gIGxhYnMoeD1cIlwiLHk9XCJcIixjb2xvdXI9XCJcIilcbmBgYCJ9 -->
-<pre class="r"><code>ggplot(data=data.frame(x=seq(-5, 5, length.out = 100)), mapping = aes(x=x))+
-  stat_function(aes(colour = &quot;Normal likelihood&quot;),
+  labs(x=\Feelings of lack of control (z-score)\, y=\Sum of personal projects (with outliers)\)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Porównajmy wynik z modelem `fit1`.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZ2dwbG90KGRhdGE9ZGF0YS5mcmFtZSh4PXNlcSgtNSwgNSwgbGVuZ3RoLm91dCA9IDEwMCkpLCBtYXBwaW5nID0gYWVzKHg9eCkpK1xuICBzdGF0X2Z1bmN0aW9uKGFlcyhjb2xvdXIgPSBcXE5vcm1hbCBsaWtlbGlob29kXFwpLFxuICAgICAgICAgICAgICAgIGZ1biA9IGRub3JtLCBhcmdzID0gbGlzdChtZWFuID0gMCwgc2Q9MSkpK1xuICBzdGF0X2Z1bmN0aW9uKGFlcyhjb2xvdXIgPSBcXFN0dWRlbnQgbGlrZWxpaG9vZCAoZGY9MzApXFwpLFxuICAgICAgICAgICAgICAgIGZ1biA9IGR0LCBhcmdzID0gbGlzdChkZiA9IDMwKSkrXG4gIHN0YXRfZnVuY3Rpb24oYWVzKGNvbG91ciA9IFxcU3R1ZGVudCBsaWtlbGlob29kIChkZj0zKVxcKSxcbiAgICAgICAgICAgICAgICBmdW4gPSBkdCwgYXJncyA9IGxpc3QoZGYgPSAzKSkrXG4gIGxhYnMoeD1cXFxcLHk9XFxcXCxjb2xvdXI9XFxcXClcbmBgYFxuYGBgIn0= --&gt;
+
+```r
+```r
+ggplot(data=data.frame(x=seq(-5, 5, length.out = 100)), mapping = aes(x=x))+
+  stat_function(aes(colour = \Normal likelihood\),
                 fun = dnorm, args = list(mean = 0, sd=1))+
-  stat_function(aes(colour = &quot;Student likelihood (df=30)&quot;),
+  stat_function(aes(colour = \Student likelihood (df=30)\),
                 fun = dt, args = list(df = 30))+
-  stat_function(aes(colour = &quot;Student likelihood (df=3)&quot;),
+  stat_function(aes(colour = \Student likelihood (df=3)\),
                 fun = dt, args = list(df = 3))+
-  labs(x=&quot;&quot;,y=&quot;&quot;,colour=&quot;&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Nie musimy ustalać wartości stopni swobody. Możemy ją oszacować - musimy tylko przypisać jej rozkład prior (tutaj rozkład gamma).</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2V0X3ByaW9yKHN1bVByb091dCB+IHpGQkssXG4gICAgICAgICAgICBkYXRhID0gcmVhbF9kYXRhLFxuICAgICAgICAgICAgZmFtaWx5ID0gc3R1ZGVudCgpKVxuYGBgIn0= -->
-<pre class="r"><code>get_prior(sumProOut ~ zFBK,
+  labs(x=\\,y=\\,colour=\\)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Sprawdźmy zależność na wykresie.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZ2V0X3ByaW9yKHN1bVByb091dCB+IHpGQkssXG4gICAgICAgICAgICBkYXRhID0gcmVhbF9kYXRhLFxuICAgICAgICAgICAgZmFtaWx5ID0gc3R1ZGVudCgpKVxuYGBgXG5gYGAifQ== --&gt;
+
+```r
+```r
+get_prior(sumProOut ~ zFBK,
             data = real_data,
             family = student())</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Sprawdźmy jak radzi sobie taka wersja modelu.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml0MyA8LSBicm0oc3VtUHJvT3V0IH4gekZCSyxcbiAgICAgICAgICAgIGRhdGEgPSByZWFsX2RhdGEsXG4gICAgICAgICAgICBwcmlvciA9IHByaW9yX3JlZ193ZWlnaHRzLFxuICAgICAgICAgICAgZmFtaWx5ID0gc3R1ZGVudCgpKVxuYGBgIn0= -->
-<pre class="r"><code>fit3 &lt;- brm(sumProOut ~ zFBK,
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+
+W przypadku modeli bayesowskich nie musimy zakładać, że rozkład reszt jest Normalny. Może on mieć np. rozkład t Studenta.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZml0MyA8LSBicm0oc3VtUHJvT3V0IH4gekZCSyxcbiAgICAgICAgICAgIGRhdGEgPSByZWFsX2RhdGEsXG4gICAgICAgICAgICBwcmlvciA9IHByaW9yX3JlZ193ZWlnaHRzLFxuICAgICAgICAgICAgZmFtaWx5ID0gc3R1ZGVudCgpKVxuYGBgXG5gYGAifQ== --&gt;
+
+```r
+```r
+fit3 &lt;- brm(sumProOut ~ zFBK,
             data = real_data,
             prior = prior_reg_weights,
             family = student())</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Porównajmy wynik do modelu <code>fit2</code> i <code>fit1</code>.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml0M1xuYGBgIn0= -->
-<pre class="r"><code>fit3</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Narysujmy wykres z dopasowaną linią regresji.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWFyZ2luYWxfZWZmZWN0cyhmaXQzLCBcInpGQktcIiwgc3BhZ2hldHRpID0gVCwgbnNhbXBsZXMgPSAzMDApICU+JSBcbiAgcGxvdChwb2ludHMgPSBULFxuICAgICAgIHBvaW50X2FyZ3MgPSBsaXN0KHdpZHRoID0gMC4yLCBoZWlnaHQgPSAwLjIpKSAlPiUgXG4gIC5bWzFdXSArXG4gIGxhYnMoeD1cIkZlZWxpbmdzIG9mIGxhY2sgb2YgY29udHJvbCAoei1zY29yZSlcIiwgeT1cIlN1bSBvZiBwZXJzb25hbCBwcm9qZWN0cyAod2l0aCBvdXRsaWVycylcIilcbmBgYCJ9 -->
-<pre class="r"><code>marginal_effects(fit3, &quot;zFBK&quot;, spaghetti = T, nsamples = 300) %&gt;% 
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Nie musimy ustalać wartości stopni swobody. Możemy ją oszacować - musimy tylko przypisać jej rozkład prior (tutaj rozkład gamma).
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZml0M1xuYGBgXG5gYGAifQ== --&gt;
+
+```r
+```r
+fit3</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Sprawdźmy jak radzi sobie taka wersja modelu.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWFyZ2luYWxfZWZmZWN0cyhmaXQzLCBcXHpGQktcXCwgc3BhZ2hldHRpID0gVCwgbnNhbXBsZXMgPSAzMDApICU+JSBcbiAgcGxvdChwb2ludHMgPSBULFxuICAgICAgIHBvaW50X2FyZ3MgPSBsaXN0KHdpZHRoID0gMC4yLCBoZWlnaHQgPSAwLjIpKSAlPiUgXG4gIC5bWzFdXSArXG4gIGxhYnMoeD1cXEZlZWxpbmdzIG9mIGxhY2sgb2YgY29udHJvbCAoei1zY29yZSlcXCwgeT1cXFN1bSBvZiBwZXJzb25hbCBwcm9qZWN0cyAod2l0aCBvdXRsaWVycylcXClcbmBgYFxuYGBgIn0= --&gt;
+
+```r
+```r
+marginal_effects(fit3, \zFBK\, spaghetti = T, nsamples = 300) %&gt;% 
   plot(points = T,
        point_args = list(width = 0.2, height = 0.2)) %&gt;% 
   .[[1]] +
-  labs(x=&quot;Feelings of lack of control (z-score)&quot;, y=&quot;Sum of personal projects (with outliers)&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="regresja-z-predyktorami-kategorialnymi." class="section level1">
-<h1>4. Regresja z predyktorami kategorialnymi.</h1>
-<p>Modelowanie z użyciem predyktorów kategorialnych wykorzystuje identyczne modele. Predyktory kategorialne są tylko uprzednio - automatycznie - zamieniane na zmienne dummy (lub inne kontrasty w zależności od potrzeb).</p>
-<p>Sprawdźmy dane z innego badania.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuczMgPC0gcmVhZF9jc3YoXCJzdHVkeTMuY3N2XCIsIG5hID0gXCItOTk5XCIpXG5zMyA8LSBzMyAlPiUgXG4gIG11dGF0ZShnZW5kZXIgPSBmYWN0b3IoZ2VuZGVyLCBsZXZlbHMgPSBjKFwia1wiLFwibVwiKSwgbGFiZWxzID0gYyhcImZlbWFsZVwiLFwibWFsZVwiKSksXG4gICAgICAgICBjb25kID0gZmFjdG9yKGNvbmQpKVxuXG5nbGltcHNlKHMzKVxuYGBgIn0= -->
-<pre class="r"><code>s3 &lt;- read_csv(&quot;study3.csv&quot;, na = &quot;-999&quot;)
+  labs(x=\Feelings of lack of control (z-score)\, y=\Sum of personal projects (with outliers)\)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+
+Porównajmy wynik do modelu `fit2` i `fit1`.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuczMgPC0gcmVhZF9jc3YoXFxzdHVkeTMuY3N2XFwsIG5hID0gXFwtOTk5XFwpXG5zMyA8LSBzMyAlPiUgXG4gIG11dGF0ZShnZW5kZXIgPSBmYWN0b3IoZ2VuZGVyLCBsZXZlbHMgPSBjKFxca1xcLFxcbVxcKSwgbGFiZWxzID0gYyhcXGZlbWFsZVxcLFxcbWFsZVxcKSksXG4gICAgICAgICBjb25kID0gZmFjdG9yKGNvbmQpKVxuXG5nbGltcHNlKHMzKVxuYGBgXG5gYGAifQ== --&gt;
+
+```r
+```r
+s3 &lt;- read_csv(\study3.csv\, na = \-999\)
 s3 &lt;- s3 %&gt;% 
-  mutate(gender = factor(gender, levels = c(&quot;k&quot;,&quot;m&quot;), labels = c(&quot;female&quot;,&quot;male&quot;)),
+  mutate(gender = factor(gender, levels = c(\k\,\m\), labels = c(\female\,\male\)),
          cond = factor(cond))
 
 glimpse(s3)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Naszym predyktorem kategorialnym będzie w tym przypadku płeć. W tym przypadku kodowana przy pomocy 2 wartości.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuczMgJT4lIFxuICBjb3VudChnZW5kZXIpXG5gYGAifQ== -->
-<pre class="r"><code>s3 %&gt;% 
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Narysujmy wykres z dopasowaną linią regresji.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuczMgJT4lIFxuICBjb3VudChnZW5kZXIpXG5gYGBcbmBgYCJ9 --&gt;
+
+```r
+```r
+s3 %&gt;% 
   count(gender)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGliYmxlKFxuICBjYXRlZ29yeSA9IHJlcChjKFwiZmVtYWxlXCIsXCJtYWxlXCIpLCBlYWNoID0gMyksXG4gIGR1bW15ID0gcmVwKDA6MSwgZWFjaCA9IDMpXG4pXG5gYGAifQ== -->
-<pre class="r"><code>tibble(
-  category = rep(c(&quot;female&quot;,&quot;male&quot;), each = 3),
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+
+# 4. Regresja z predyktorami kategorialnymi.
+
+Modelowanie z użyciem predyktorów kategorialnych wykorzystuje identyczne modele. Predyktory kategorialne są tylko uprzednio - automatycznie - zamieniane na zmienne dummy (lub inne kontrasty w zależności od potrzeb).
+
+Sprawdźmy dane z innego badania.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxudGliYmxlKFxuICBjYXRlZ29yeSA9IHJlcChjKFxcZmVtYWxlXFwsXFxtYWxlXFwpLCBlYWNoID0gMyksXG4gIGR1bW15ID0gcmVwKDA6MSwgZWFjaCA9IDMpXG4pXG5gYGBcbmBgYCJ9 --&gt;
+
+```r
+```r
+tibble(
+  category = rep(c(\female\,\male\), each = 3),
   dummy = rep(0:1, each = 3)
 )</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Sprawdźmy rozkład zmiennej objaśnianej.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxucHJpb3IxIDwtIHByaW9yKG5vcm1hbCgwLCAxKSwgY2xhc3MgPSBiKVxuYGBgXG5gYGAifQ== -->
-<p><code>r</code>r prior1 &lt;- prior(normal(0, 1), class = b)</p>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Naszym predyktorem kategorialnym będzie w tym przypadku płeć. W tym przypadku kodowana przy pomocy 2 wartości.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuYGBgclxucHJpb3IxIDwtIHByaW9yKG5vcm1hbCgwLCAxKSwgY2xhc3MgPSBiKVxuYGBgXG5gYGBcbmBgYCJ9 --&gt;
+
+```r
+```r
+```r
+prior1 &lt;- prior(normal(0, 1), class = b)</code></pre>
 <pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Sprawdźmy jak ustalone są domyślne rozkłady prior dla tego modelu.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2V0X3ByaW9yKGpjX21lYW4gfiAgZ2VuZGVyLCBcbiAgICAgICAgICAgZGF0YSA9IHMzKVxuYGBgIn0= -->
-<pre class="r"><code>get_prior(jc_mean ~  gender, 
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZ2V0X3ByaW9yKGpjX21lYW4gfiAgZ2VuZGVyLCBcbiAgICAgICAgICAgZGF0YSA9IHMzKVxuYGBgXG5gYGAifQ== -->
+<pre class="r"><code>```r
+get_prior(jc_mean ~  gender, 
            data = s3)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>W tym przypadku, dla współczynnika regresji ustalmy Normalny rozkład prior o średniej 0 i odchyleniu standardowym 1.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpb3IxIDwtIHByaW9yKG5vcm1hbCgwLCAxKSwgY2xhc3MgPSBiKVxuYGBgIn0= -->
-<pre class="r"><code>prior1 &lt;- prior(normal(0, 1), class = b)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Ponieważ odchylenie standardowe zmiennej objaśnianej wynosi 1, jest bardzo mało prawdopodobne, żeby różnica pomiędzy kobietami a mężczyznami wynosiła więcej niż 1 (lub mniej niż -1).</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGliYmxlKGIgPSBzZXEoLTQsNCwgbGVuZ3RoLm91dCA9IDEwMCkpICU+JSBcbiAgZ2dwbG90KGFlcyh4PWIpKStcbiAgc3RhdF9mdW5jdGlvbihmdW4gPSBkbm9ybSwgYXJncyA9IGxpc3QobWVhbiA9IDAsIHNkID0gMSkpXG5gYGAifQ== -->
-<pre class="r"><code>tibble(b = seq(-4,4, length.out = 100)) %&gt;% 
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Sprawdźmy rozkład zmiennej objaśnianej.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxucHJpb3IxIDwtIHByaW9yKG5vcm1hbCgwLCAxKSwgY2xhc3MgPSBiKVxuYGBgXG5gYGAifQ== --&gt;
+
+```r
+```r
+prior1 &lt;- prior(normal(0, 1), class = b)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+
+Sprawdźmy jak ustalone są domyślne rozkłady prior dla tego modelu.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxudGliYmxlKGIgPSBzZXEoLTQsNCwgbGVuZ3RoLm91dCA9IDEwMCkpICU+JSBcbiAgZ2dwbG90KGFlcyh4PWIpKStcbiAgc3RhdF9mdW5jdGlvbihmdW4gPSBkbm9ybSwgYXJncyA9IGxpc3QobWVhbiA9IDAsIHNkID0gMSkpXG5gYGBcbmBgYCJ9 --&gt;
+
+```r
+```r
+tibble(b = seq(-4,4, length.out = 100)) %&gt;% 
   ggplot(aes(x=b))+
   stat_function(fun = dnorm, args = list(mean = 0, sd = 1))</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+W tym przypadku, dla współczynnika regresji ustalmy Normalny rozkład prior o średniej 0 i odchyleniu standardowym 1. 
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZml0NCA8LSBicm0oamNfbWVhbiB+IGdlbmRlciwgXG4gICAgICAgICAgIGRhdGEgPSBzMyxcbiAgICAgICAgICAgcHJpb3IgPSBwcmlvcjEsXG4gICAgICAgICAgIHNlZWQgPSAxMjM0KVxuYGBgXG5gYGAifQ== --&gt;
+
+```r
+```r
+fit4 &lt;- brm(jc_mean ~ gender, 
+           data = s3,
+           prior = prior1,
+           seed = 1234)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Ponieważ odchylenie standardowe zmiennej objaśnianej wynosi 1, jest bardzo mało prawdopodobne, żeby różnica pomiędzy kobietami a mężczyznami wynosiła więcej niż 1 (lub mniej niż -1).
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuYGBgclxuI2luc3RhbGwucGFja2FnZXMoJ2VtbWVhbnMnKVxuYGBgXG5gYGBcbmBgYCJ9 --&gt;
+
+```r
+```r
+```r
+#install.packages(&#39;emmeans&#39;)</code></pre>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2101,19 +2498,33 @@ glimpse(s3)</code></pre>
 <p>Dopasujmy nasz model.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml0NCA8LSBicm0oamNfbWVhbiB+IGdlbmRlciwgXG4gICAgICAgICAgIGRhdGEgPSBzMyxcbiAgICAgICAgICAgcHJpb3IgPSBwcmlvcjEsXG4gICAgICAgICAgIHNlZWQgPSAxMjM0KVxuYGBgIn0= -->
-<pre class="r"><code>fit4 &lt;- brm(jc_mean ~ gender, 
-           data = s3,
-           prior = prior1,
-           seed = 1234)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Możemy teraz sprawdzić współczynniki regresji, aby dowiedzieć się czy model wskazuje na różnicę pomiędzy mężczyznami a kobietami.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuI2luc3RhbGwucGFja2FnZXMoJ2VtbWVhbnMnKVxuYGBgXG5gYGAifQ== -->
-<p><code>r</code>r #install.packages(‘emmeans’)</p>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWFyZ2luYWxfZWZmZWN0cyhmaXQ0KVxuYGBgXG5gYGAifQ== -->
+<pre class="r"><code>```r
+marginal_effects(fit4)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Możemy teraz sprawdzić współczynniki regresji, aby dowiedzieć się czy model wskazuje na różnicę pomiędzy mężczyznami a kobietami.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuYGBgclxuI2luc3RhbGwucGFja2FnZXMoJ3RpZHliYXllcycpXG5gYGBcbmBgYFxuYGBgIn0= --&gt;
+
+```r
+```r
+```r
+#install.packages(&#39;tidybayes&#39;)</code></pre>
 <pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
@@ -2121,26 +2532,65 @@ glimpse(s3)</code></pre>
 <p>Możemy również stworzyć wykres obrazujący różnicę.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWFyZ2luYWxfZWZmZWN0cyhmaXQ0KVxuYGBgIn0= -->
-<pre class="r"><code>marginal_effects(fit4)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Lub wykorzystać pakiet <code>emmeans</code> aby wydrukować wartości średnich.</p>
-<p>Zainstalujmy najpierw pakiet <code>emmeans</code>.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuI2luc3RhbGwucGFja2FnZXMoJ3RpZHliYXllcycpXG5gYGBcbmBgYCJ9 -->
-<p><code>r</code>r #install.packages(‘tidybayes’)</p>
-<pre><code></code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShlbW1lYW5zKVxuZW1tZWFucyhmaXQ0LCB+Z2VuZGVyKVxuYGBgIn0= -->
-<pre class="r"><code>library(emmeans)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubGlicmFyeShlbW1lYW5zKVxuZW1tZWFucyhmaXQ0LCB+Z2VuZGVyKVxuYGBgXG5gYGAifQ== -->
+<pre class="r"><code>```r
+library(emmeans)
 emmeans(fit4, ~gender)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Lub wykorzystać pakiet `emmeans` aby wydrukować wartości średnich.
+
+Zainstalujmy najpierw pakiet `emmeans`.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuI2luc3RhbGwucGFja2FnZXMoJ3RpZHliYXllcycpXG5gYGBcbmBgYCJ9 --&gt;
+
+```r
+```r
+#install.packages(&#39;tidybayes&#39;)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuYGBgclxuczMgJT4lIFxuICBkYXRhX2dyaWQoZ2VuZGVyKSAlPiUgXG4gIGFkZF9maXR0ZWRfZHJhd3MoZml0NCkgJT4lIFxuICBjb21wYXJlX2xldmVscyh2YXJpYWJsZSA9IC52YWx1ZSwgYnkgPSBnZW5kZXIpICU+JSBcbiAgZ2dwbG90KGFlcyh4PS52YWx1ZSwgeT1nZW5kZXIpKStcbiAgc3RhdF9pbnRlcnZhbGgoKStcbiAgbGFicyh4PVxcRGlmZmVyZW5jZSBpbiBiZWxpZWYgaW4gSmV3aXNoIGNvbnNwaXJhY3lcXCwgeSA9IFxcXFwpXG5gYGBcbmBgYFxuYGBgIn0= --&gt;
+
+```r
+```r
+```r
+s3 %&gt;% 
+  data_grid(gender) %&gt;% 
+  add_fitted_draws(fit4) %&gt;% 
+  compare_levels(variable = .value, by = gender) %&gt;% 
+  ggplot(aes(x=.value, y=gender))+
+  stat_intervalh()+
+  labs(x=\Difference in belief in Jewish conspiracy\, y = \\)</code></pre>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -2148,25 +2598,64 @@ emmeans(fit4, ~gender)</code></pre>
 <p>Zainstalujmy pakiet <code>tidybayes</code>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2luc3RhbGwucGFja2FnZXMoJ3RpZHliYXllcycpXG5gYGAifQ== -->
-<pre class="r"><code>#install.packages('tidybayes')</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Tutaj jest przykład wykresu, tzw. half-eye plot.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuczMgJT4lIFxuICBkYXRhX2dyaWQoZ2VuZGVyKSAlPiUgXG4gIGFkZF9maXR0ZWRfZHJhd3MoZml0NCkgJT4lIFxuICBjb21wYXJlX2xldmVscyh2YXJpYWJsZSA9IC52YWx1ZSwgYnkgPSBnZW5kZXIpICU+JSBcbiAgZ2dwbG90KGFlcyh4PS52YWx1ZSwgeT1nZW5kZXIpKStcbiAgc3RhdF9pbnRlcnZhbGgoKStcbiAgbGFicyh4PVxcRGlmZmVyZW5jZSBpbiBiZWxpZWYgaW4gSmV3aXNoIGNvbnNwaXJhY3lcXCwgeSA9IFxcXFwpXG5gYGBcbmBgYCJ9 -->
-<p><code>r</code>r s3 %&gt;% data_grid(gender) %&gt;% add_fitted_draws(fit4) %&gt;% compare_levels(variable = .value, by = gender) %&gt;% ggplot(aes(x=.value, y=gender))+ stat_intervalh()+ labs(x=in belief in Jewish conspiracy, y = \)</p>
-<pre><code></code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Tutaj jest przykład wykresu z różnymi przedziałami wiarygodności.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuczMgJT4lIFxuICBkYXRhX2dyaWQoZ2VuZGVyKSAlPiUgXG4gIGFkZF9maXR0ZWRfZHJhd3MoZml0NCkgJT4lIFxuICBnZ3Bsb3QoYWVzKHg9LnZhbHVlLCB5PWdlbmRlcikpK1xuICBzdGF0X2ludGVydmFsaCgpK1xuICBsYWJzKHg9XCJCZWxpZWYgaW4gSmV3aXNoIGNvbnNwaXJhY3lcIiwgeSA9IFwiR2VuZGVyXCIpXG5gYGAifQ== -->
-<pre class="r"><code>s3 %&gt;% 
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuczMgJT4lIFxuICBkYXRhX2dyaWQoZ2VuZGVyKSAlPiUgXG4gIGFkZF9maXR0ZWRfZHJhd3MoZml0NCkgJT4lIFxuICBnZ3Bsb3QoYWVzKHg9LnZhbHVlLCB5PWdlbmRlcikpK1xuICBzdGF0X2ludGVydmFsaCgpK1xuICBsYWJzKHg9XFxCZWxpZWYgaW4gSmV3aXNoIGNvbnNwaXJhY3lcXCwgeSA9IFxcR2VuZGVyXFwpXG5gYGBcbmBgYCJ9 -->
+<pre class="r"><code>```r
+s3 %&gt;% 
+  data_grid(gender) %&gt;% 
+  add_fitted_draws(fit4) %&gt;% 
+  ggplot(aes(x=.value, y=gender))+
+  stat_intervalh()+
+  labs(x=\Belief in Jewish conspiracy\, y = \Gender\)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Tutaj jest przykład wykresu, tzw. half-eye plot.
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuczMgJT4lIFxuICBkYXRhX2dyaWQoZ2VuZGVyKSAlPiUgXG4gIGFkZF9maXR0ZWRfZHJhd3MoZml0NCkgJT4lIFxuICBjb21wYXJlX2xldmVscyh2YXJpYWJsZSA9IC52YWx1ZSwgYnkgPSBnZW5kZXIpICU+JSBcbiAgZ2dwbG90KGFlcyh4PS52YWx1ZSwgeT1nZW5kZXIpKStcbiAgc3RhdF9pbnRlcnZhbGgoKStcbiAgbGFicyh4PVxcRGlmZmVyZW5jZSBpbiBiZWxpZWYgaW4gSmV3aXNoIGNvbnNwaXJhY3lcXCwgeSA9IFxcXFwpXG5gYGBcbmBgYCJ9 --&gt;
+
+```r
+```r
+s3 %&gt;% 
+  data_grid(gender) %&gt;% 
+  add_fitted_draws(fit4) %&gt;% 
+  compare_levels(variable = .value, by = gender) %&gt;% 
+  ggplot(aes(x=.value, y=gender))+
+  stat_intervalh()+
+  labs(x=\Difference in belief in Jewish conspiracy\, y = \\)</code></pre>
+<pre><code>
+&lt;!-- rnb-source-end --&gt;
+
+&lt;!-- rnb-chunk-end --&gt;
+
+
+&lt;!-- rnb-text-begin --&gt;
+
+
+Tutaj jest przykład wykresu z różnymi przedziałami wiarygodności.
+
+
+&lt;!-- rnb-text-end --&gt;
+
+
+&lt;!-- rnb-chunk-begin --&gt;
+
+
+&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuczMgJT4lIFxuICBkYXRhX2dyaWQoZ2VuZGVyKSAlPiUgXG4gIGFkZF9maXR0ZWRfZHJhd3MoZml0NCkgJT4lIFxuICBnZ3Bsb3QoYWVzKHg9LnZhbHVlLCB5PWdlbmRlcikpK1xuICBzdGF0X2ludGVydmFsaCgpK1xuICBsYWJzKHg9XCJCZWxpZWYgaW4gSmV3aXNoIGNvbnNwaXJhY3lcIiwgeSA9IFwiR2VuZGVyXCIpXG5gYGAifQ== --&gt;
+
+```r
+s3 %&gt;% 
   data_grid(gender) %&gt;% 
   add_fitted_draws(fit4) %&gt;% 
   ggplot(aes(x=.value, y=gender))+
@@ -2192,13 +2681,13 @@ emmeans(fit4, ~gender)</code></pre>
 <div id="jeżeli-mamy-czas-twoja-kolej" class="section level2">
 <h2>Jeżeli mamy czas, Twoja kolej:</h2>
 <ul>
-<li>Przeprowadzaź analogiczną analizę przy użyciu rozkładu t Studenta.</li>
+<li>Przeprowadź analogiczną analizę przy użyciu rozkładu t Studenta.</li>
 </ul>
 <!-- rnb-text-end -->
 </div>
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiYnJtczogcmVncmVzamEgcHJvc3RhIGkgcG9yw7N3bnl3YW5pZSDFm3JlZG5pY2giCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCiMgMS4gV3Byb3dhZHplbmllIGRvIG1vZGVsaSBiYXllc293c2tpZWogcmVncmVzamkKClN5bXVsYWNqZSBNQ01DIHpuYWpkdWrEhSBzemN6ZWfDs2xuZSB6YXN0b3Nvd2FuaWUgdyBwcnp5cGFka3Ugcm96bWFpdHljaCBtb2RlbGkgcmVncmVzeWpueWNoLgpXIHRha2ljaCBtb2RlbGFjaCByb3prxYJhZCBwb3N0ZXJpb3IgamVzdCB3aWVsb3d5bWlhcm93eTogb3Bpc3VqZSBwYXJhbWV0cnkgendpxIV6YW5lIHogamVkbnltIGx1YiB3acSZY2VqIHdzcMOzxYJjenlubmlrYW1pIHJlZ3Jlc2ppIG9yYXogcGFyYW1ldHIgendpxIV6YW55IHogcm96a8WCYWRlbSByZXN6dCByZWdyZXNqaS4gIAoKJCQKb3V0Y29tZV9pIFxzaW0gTm9ybWFsKFxtdV9pLCBcc2lnbWEpIFxcClxtdV9pID0gXGJldGEgXHRpbWVzIHByZWRpY3Rvcl9pIFxcClxiZXRhIFxzaW0gTm9ybWFsKDAsIDEwKSBcXApcc2lnbWEgXHNpbSBTdHVkZW50KDMsIDAsIDEwKQokJAoKTyBpbGUgbmllIG1hbXkgcG9kc3RhdyBhYnkgdcW8eXdhxIcgaW5mb3JtYXR5d255Y2ggcm96a8WCYWTDs3cgcHJpb3IsIG1vxbxlbXkgemFzdG9zb3dhxIcgcm96a8WCYWR5LCBrdMOzcmUgZG9zdGFyY3phasSFIG1pbmltYWxuxIUgaWxvxZvEhyBpbmZvcm1hY2ppIG5hIHRlbWF0IHBhcmFtZXRyw7N3LgoKVGVuIHJvemvFgmFkIGplc3Qgd3pnbMSZZG5pZSBhZ25vc3R5Y3pueSB3emdsxJlkZW0gd3Nww7PFgmN6eW5uaWvDs3cgcmVncmVzamkuCgpgYGB7cn0KZ2dwbG90KGFlcyh4PXgpLCBkYXRhID0gZGF0YS5mcmFtZSh4PXNlcSgtNTAsNTAsIGxlbmd0aC5vdXQgPSA1MCkpKSsKICBzdGF0X2Z1bmN0aW9uKGZ1bj1kbm9ybSwgYXJncyA9IGxpc3QobWVhbiA9IDAsIHNkID0gMTApLCBjb2xvdXI9ImJsdWUiKSsKICBsYWJzKHRpdGxlID0gIlByaW9yIGRpc3RyaWJ1dGlvbiBmb3IgcmVncmVzc2lvbiB3ZWlnaHRzIiwgeCA9ICJiZXRhIiwgeT0iIikKYGBgCgpaIGtvbGVpIHBvxYLDs3drb3d5IHJvemvFgmFkIHQgU3R1ZGVudGEgamVzdCB3emdsxJlkbmllIGFnbm9zdHljem55IHd6Z2zEmWRlbSBvZGNoeWxlbmlhIHN0YW5kYXJkb3dlZ28gcmVzenQgcmVncmVzamkuCgpgYGB7cn0KZHNjYWxlZF90IDwtIGZ1bmN0aW9uKHgsIHNjLCBkZil7CiAgZHQoeC9zYywgZGY9ZGYpCn0KZ2dwbG90KGFlcyh4PXgpLCBkYXRhID0gZGF0YS5mcmFtZSh4PXNlcSgwLDUwLCBsZW5ndGgub3V0ID0gNTApKSkrCiAgc3RhdF9mdW5jdGlvbihmdW49ZHNjYWxlZF90LCBhcmdzID0gbGlzdChkZj0zLCBzYz0xMCksIGNvbG91cj0iYmx1ZSIpKwogIGxhYnModGl0bGUgPSAiUHJpb3IgZGlzdHJpYnV0aW9uIGZvciBzdGFuZGFyZCBkZXZpYXRpb24gb2YgcmVzaWR1YWxzIiwgeCA9ICJzaWdtYSIsIHk9IiIpCmBgYAoKIyAyLiBQaWVyd3N6eSBtb2RlbCB3IGJybXMKClByemVkIHN0d29yemVuaWVtIG5hc3plZ28gcGllcndzemVnbyBtb2RlbHUgemFpbnN0YWx1am15IHBha2lldCBgYnJtc2AKCmBgYHtyfQojaW5zdGFsbC5wYWNrYWdlcygnYnJtcycpCmBgYAoKClphxYJhZHVqbXkgcGFraWV0eSBgdGlkeXZlcnNlYCwgYGhhdmVuYCBpIGBicm1zYC4KCmBgYHtyfQpsaWJyYXJ5KHRpZHl2ZXJzZSkKbGlicmFyeShoYXZlbikKbGlicmFyeShicm1zKQpgYGAKCgpgYGB7cn0KcmVhbF9kYXRhIDwtIHJlYWRfc2F2KCJiYW1fY2xhc3M3X2RhdGEuc2F2IikKZ2xpbXBzZShyZWFsX2RhdGEpCmBgYAoKUHJ6ZWQgd8WCxIVjemVuaWVtIHByZWR5a3RvcsOzdyBkbyBhbmFsaXogdyBgYnJtc2AgemFsZWNhbmUgKG5pZXpixJlkbmUpIGplc3QgaWNoIHd5c3RhbmRhcnl6b3dhbmllLgoKYGBge3J9CnJlYWxfZGF0YSA8LSByZWFsX2RhdGEgJT4lIAogIG11dGF0ZSh6RkJLID0gKEZCSyAtIG1lYW4oRkJLLCBuYS5ybT1UKSkgLyBzZChGQkssIG5hLnJtPVQpICkKYGBgCgpXYXJ0byByw7N3bmllxbwgc3BvanJ6ZcSHIG5hIHd5a3JlcywgYWJ5IHVwZXduacSHIHNpxJksIMW8ZSBuYXN6IG1vZGVsIG1hIHNlbnMuCgpgYGB7cn0KcmVhbF9kYXRhICU+JSAKICBnZ3Bsb3QoYWVzKHpGQkssIHN1bVBybykpKwogIGdlb21faml0dGVyKCkrCiAgbGFicyh4PSJGZWVsaW5ncyBvZiBsYWNrIG9mIGNvbnRyb2wgKHotc2NvcmUpIiwgeT0iU3VtIG9mIHBlcnNvbmFsIHByb2plY3RzIikrCiAgc2NhbGVfeV9jb250aW51b3VzKGJyZWFrcz0wOjEwKQpgYGAKCk1vZGVsb3dhbmllIHcgcGFraWVjaWUgYGJybXNgIGplc3QgYmFyZHpvIHByb3N0ZS4KCmBgYApicm0oZm9ybXVsYSA9IFBSRURJQ1RFRF9WQVJJQUJMRSB+IFBSRURJQ1RPUlMsCiAgICBkYXRhID0gTkFNRV9PRl9EQVRBX0ZSQU1FLAogICAgcHJpb3IgPSBQUklPUl9ESVNUUklCVVRJT04sCiAgICBmYW1pbHkgPSBMSUtFTElIT09EX0RJU1RSSUJVVElPTikKYGBgCgpDesSZxZvEhyBwYXJhbWV0csOzdyBtYSBqdcW8IG5hZGFuZSBuaWVpbmZvcm1hdHl3bmUgcm96a8WCYWR5IHByaW9yLgoKYGBge3J9CmdldF9wcmlvcihzdW1Qcm8gfiB6RkJLLCAKICAgICAgICAgIGRhdGEgPSByZWFsX2RhdGEpCmBgYAoKUHJ6eXBpc3pteSBwYXJhbWV0cm93aSB3c3DDs8WCY3p5bm5pa2EgcmVncmVzamkgTm9ybWFseSByb3prxYJhZCBwcmlvciwgemUgxZtyZWRuacSFIDAgaSBvZGNoeWxlbmllIHN0YW5kYXJkb3d5bSAxMC4KCmBgYHtyfQpwcmlvcl9yZWdfd2VpZ2h0cyA8LSBwcmlvcihub3JtYWwoMCwgMTApLCBjbGFzcyA9IGIpCnByaW9yX3JlZ193ZWlnaHRzCmBgYAoKTW/FvGVteSB0ZXJheiBzcHLDs2Jvd2HEhyBkb3Bhc293YcSHIG5hc3ogbW9kZWwuCgpgYGB7cn0KZml0MSA8LSBicm0oc3VtUHJvIH4gekZCSywKICAgICAgICAgICAgZGF0YSA9IHJlYWxfZGF0YSwKICAgICAgICAgICAgcHJpb3IgPSBwcmlvcl9yZWdfd2VpZ2h0cywKICAgICAgICAgICAgZmFtaWx5ID0gZ2F1c3NpYW4oKSkKYGBgCgpXacSZa3N6b8WbxIcgaW50ZXJlc3VqxIVjeWNoIG5hcyBpbmZvcm1hY2ppIHphd2FydGEgamVzdCB3IHBvZHN0YXdvd3ltIHd5ZHJ1a3UuCk5hbGXFvHkgdXdhxbxuaWUgc3ByYXdkemHEhyBrb2x1bW55IFJoYXQsIEJ1bGtfRVNTIGkgVGFpbF9FU1MuIEluZm9ybXVqxIUgb25lIG8gamFrb8WbY2kgc3ltdWxhY2ppIE1DTUMuClJoYXQgZGxhIHdzenlzdGtpY2ggcGFyYW1ldHLDs3cgcG93aW5ubyBiecSHIG1uaWVqc3plIG5pxbwgMS4wMS4KQnVsa19FU1MgaSBUYWlsX0VTUyBwb3dpbm55IHd5bm9zacSHIHByenlqbmFqbW5pZWogNDAwLgoKYGBge3J9CmZpdDEKYGBgCgpEb2RhdGtvd28sIG1vxbxlbXkgc3ByYXdkemnEhyB3YXJ0b8WbxIcgJFJeMiQuCgpgYGB7cn0KYmF5ZXNfUjIoZml0MSkKYGBgCgpPcmF6IG5hcnlzb3dhxIcgcHJlZHlrY2plIG5hc3plZ28gbW9kZWx1LgoKYGBge3J9Cm1hcmdpbmFsX2VmZmVjdHMoZml0MSwgInpGQksiLCBzcGFnaGV0dGkgPSBULCBuc2FtcGxlcyA9IDUwKQpgYGAKClBvbmnFvGVqIHRlbiBzYW0gd3lrcmVzLCB6IGRvZGF0a293eW1pIG9wY2phbWkuIAoKYGBge3J9Cm1hcmdpbmFsX2VmZmVjdHMoZml0MSwgInpGQksiLCBzcGFnaGV0dGkgPSBULCBuc2FtcGxlcyA9IDMwMCkgJT4lIAogIHBsb3QocG9pbnRzID0gVCwgcG9pbnRfYXJncyA9IGxpc3Qod2lkdGggPSAwLjIsIGhlaWdodCA9IDAuMiksIHBsb3Q9RikgJT4lIAogIC5bWzFdXSArCiAgbGFicyh4PSJGZWVsaW5ncyBvZiBsYWNrIG9mIGNvbnRyb2wgKHotc2NvcmUpIiwgeT0iU3VtIG9mIHBlcnNvbmFsIHByb2plY3RzIikKYGBgCgoKCgojIDMuIE9kcG9ybmEgcmVncmVzamEgbGluaW93YS4KCkN6YXNhbWkgdyBuYXN6eWNoIGRhbnljaCBixJlkxIUgcG9qYXdpYcWCeSBzacSZIG9kc3RhasSFY2Ugb2JzZXJ3YWNqZSAob3V0bGllcnkpLgoKYGBge3J9CnJlYWxfZGF0YSRzdW1Qcm9PdXQgPC0gcmVhbF9kYXRhJHN1bVBybwpyZWFsX2RhdGEkc3VtUHJvT3V0WzIwXSA8LSAyMApyZWFsX2RhdGEkc3VtUHJvT3V0WzM0XSA8LSAxOApyZWFsX2RhdGEkc3VtUHJvT3V0WzQ5XSA8LSAxNgoKcmVhbF9kYXRhICU+JSAKICBnZ3Bsb3QoYWVzKHpGQkssIHN1bVByb091dCkpKwogIGdlb21faml0dGVyKCkrCiAgbGFicyh4PSJGZWVsaW5ncyBvZiBsYWNrIG9mIGNvbnRyb2wgKHotc2NvcmUpIiwgeT0iU3VtIG9mIHBlcnNvbmFsIHByb2plY3RzICh3aXRoIGZha2Ugb3V0bGllcnMpIikKYGBgCgoKU3ByYXdkxbpteSBqYWsgcmFkemkgc29iaWUgeiB0YWvEhSBzeXR1YWNqxIUgc3RhbmRhcmRvd3kgbW9kZWwuCgpgYGB7cn0KZml0MiA8LSBicm0oc3VtUHJvT3V0IH4gekZCSywKICAgICAgICAgICAgZGF0YSA9IHJlYWxfZGF0YSwKICAgICAgICAgICAgcHJpb3IgPSBwcmlvcl9yZWdfd2VpZ2h0cywKICAgICAgICAgICAgZmFtaWx5ID0gZ2F1c3NpYW4oKSkKYGBgCgpQb3LDs3duYWpteSB3eW5payB6IG1vZGVsZW0gYGZpdDFgLgoKYGBge3J9CmZpdDIKYGBgCgpTcHJhd2TFum15IHphbGXFvG5vxZvEhyBuYSB3eWtyZXNpZS4KCmBgYHtyfQptYXJnaW5hbF9lZmZlY3RzKGZpdDIsICJ6RkJLIiwgc3BhZ2hldHRpID0gVCwgbnNhbXBsZXMgPSAzMDApICU+JSAKICBwbG90KHBvaW50cyA9IFQsCiAgICAgICBwb2ludF9hcmdzID0gbGlzdCh3aWR0aCA9IDAuMiwgaGVpZ2h0ID0gMC4yKSkgJT4lIAogIC5bWzFdXSArCiAgbGFicyh4PSJGZWVsaW5ncyBvZiBsYWNrIG9mIGNvbnRyb2wgKHotc2NvcmUpIiwgeT0iU3VtIG9mIHBlcnNvbmFsIHByb2plY3RzICh3aXRoIG91dGxpZXJzKSIpCmBgYAoKClcgcHJ6eXBhZGt1IG1vZGVsaSBiYXllc293c2tpY2ggbmllIG11c2lteSB6YWvFgmFkYcSHLCDFvGUgcm96a8WCYWQgcmVzenQgamVzdCBOb3JtYWxueS4gTW/FvGUgb24gbWllxIcgbnAuIHJvemvFgmFkIHQgU3R1ZGVudGEuCgpgYGB7cn0KZ2dwbG90KGRhdGE9ZGF0YS5mcmFtZSh4PXNlcSgtNSwgNSwgbGVuZ3RoLm91dCA9IDEwMCkpLCBtYXBwaW5nID0gYWVzKHg9eCkpKwogIHN0YXRfZnVuY3Rpb24oYWVzKGNvbG91ciA9ICJOb3JtYWwgbGlrZWxpaG9vZCIpLAogICAgICAgICAgICAgICAgZnVuID0gZG5vcm0sIGFyZ3MgPSBsaXN0KG1lYW4gPSAwLCBzZD0xKSkrCiAgc3RhdF9mdW5jdGlvbihhZXMoY29sb3VyID0gIlN0dWRlbnQgbGlrZWxpaG9vZCAoZGY9MzApIiksCiAgICAgICAgICAgICAgICBmdW4gPSBkdCwgYXJncyA9IGxpc3QoZGYgPSAzMCkpKwogIHN0YXRfZnVuY3Rpb24oYWVzKGNvbG91ciA9ICJTdHVkZW50IGxpa2VsaWhvb2QgKGRmPTMpIiksCiAgICAgICAgICAgICAgICBmdW4gPSBkdCwgYXJncyA9IGxpc3QoZGYgPSAzKSkrCiAgbGFicyh4PSIiLHk9IiIsY29sb3VyPSIiKQpgYGAKCk5pZSBtdXNpbXkgdXN0YWxhxIcgd2FydG/Fm2NpIHN0b3BuaSBzd29ib2R5LiBNb8W8ZW15IGrEhSBvc3phY293YcSHIC0gbXVzaW15IHR5bGtvIHByenlwaXNhxIcgamVqIHJvemvFgmFkIHByaW9yICh0dXRhaiByb3prxYJhZCBnYW1tYSkuCgpgYGB7cn0KZ2V0X3ByaW9yKHN1bVByb091dCB+IHpGQkssCiAgICAgICAgICAgIGRhdGEgPSByZWFsX2RhdGEsCiAgICAgICAgICAgIGZhbWlseSA9IHN0dWRlbnQoKSkKYGBgCgpTcHJhd2TFum15IGphayByYWR6aSBzb2JpZSB0YWthIHdlcnNqYSBtb2RlbHUuCgpgYGB7cn0KZml0MyA8LSBicm0oc3VtUHJvT3V0IH4gekZCSywKICAgICAgICAgICAgZGF0YSA9IHJlYWxfZGF0YSwKICAgICAgICAgICAgcHJpb3IgPSBwcmlvcl9yZWdfd2VpZ2h0cywKICAgICAgICAgICAgZmFtaWx5ID0gc3R1ZGVudCgpKQpgYGAKCgpQb3LDs3duYWpteSB3eW5payBkbyBtb2RlbHUgYGZpdDJgIGkgYGZpdDFgLgoKYGBge3J9CmZpdDMKYGBgCgpOYXJ5c3VqbXkgd3lrcmVzIHogZG9wYXNvd2FuxIUgbGluacSFIHJlZ3Jlc2ppLgoKYGBge3J9Cm1hcmdpbmFsX2VmZmVjdHMoZml0MywgInpGQksiLCBzcGFnaGV0dGkgPSBULCBuc2FtcGxlcyA9IDMwMCkgJT4lIAogIHBsb3QocG9pbnRzID0gVCwKICAgICAgIHBvaW50X2FyZ3MgPSBsaXN0KHdpZHRoID0gMC4yLCBoZWlnaHQgPSAwLjIpKSAlPiUgCiAgLltbMV1dICsKICBsYWJzKHg9IkZlZWxpbmdzIG9mIGxhY2sgb2YgY29udHJvbCAoei1zY29yZSkiLCB5PSJTdW0gb2YgcGVyc29uYWwgcHJvamVjdHMgKHdpdGggb3V0bGllcnMpIikKYGBgCgoKIyA0LiBSZWdyZXNqYSB6IHByZWR5a3RvcmFtaSBrYXRlZ29yaWFsbnltaS4KCk1vZGVsb3dhbmllIHogdcW8eWNpZW0gcHJlZHlrdG9yw7N3IGthdGVnb3JpYWxueWNoIHd5a29yenlzdHVqZSBpZGVudHljem5lIG1vZGVsZS4gUHJlZHlrdG9yeSBrYXRlZ29yaWFsbmUgc8SFIHR5bGtvIHVwcnplZG5pbyAtIGF1dG9tYXR5Y3puaWUgLSB6YW1pZW5pYW5lIG5hIHptaWVubmUgZHVtbXkgKGx1YiBpbm5lIGtvbnRyYXN0eSB3IHphbGXFvG5vxZtjaSBvZCBwb3RyemViKS4KClNwcmF3ZMW6bXkgZGFuZSB6IGlubmVnbyBiYWRhbmlhLgoKYGBge3J9CnMzIDwtIHJlYWRfY3N2KCJzdHVkeTMuY3N2IiwgbmEgPSAiLTk5OSIpCnMzIDwtIHMzICU+JSAKICBtdXRhdGUoZ2VuZGVyID0gZmFjdG9yKGdlbmRlciwgbGV2ZWxzID0gYygiayIsIm0iKSwgbGFiZWxzID0gYygiZmVtYWxlIiwibWFsZSIpKSwKICAgICAgICAgY29uZCA9IGZhY3Rvcihjb25kKSkKCmdsaW1wc2UoczMpCmBgYAoKTmFzenltIHByZWR5a3RvcmVtIGthdGVnb3JpYWxueW0gYsSZZHppZSB3IHR5bSBwcnp5cGFka3UgcMWCZcSHLiBXIHR5bSBwcnp5cGFka3Uga29kb3dhbmEgcHJ6eSBwb21vY3kgMiB3YXJ0b8WbY2kuCgpgYGB7cn0KczMgJT4lIAogIGNvdW50KGdlbmRlcikKYGBgCgoKYGBge3J9CnRpYmJsZSgKICBjYXRlZ29yeSA9IHJlcChjKCJmZW1hbGUiLCJtYWxlIiksIGVhY2ggPSAzKSwKICBkdW1teSA9IHJlcCgwOjEsIGVhY2ggPSAzKQopCmBgYAoKU3ByYXdkxbpteSByb3prxYJhZCB6bWllbm5laiBvYmphxZtuaWFuZWouCgpgYGB7cn0KczMgJT4lIAogIGdncGxvdChhZXMoeD1qY19tZWFuKSkrCiAgZ2VvbV9kZW5zaXR5KCkKYGBgCgoKU3ByYXdkxbpteSBqYWsgdXN0YWxvbmUgc8SFIGRvbXnFm2xuZSByb3prxYJhZHkgcHJpb3IgZGxhIHRlZ28gbW9kZWx1LgoKYGBge3J9CmdldF9wcmlvcihqY19tZWFuIH4gIGdlbmRlciwgCiAgICAgICAgICAgZGF0YSA9IHMzKQpgYGAKClcgdHltIHByenlwYWRrdSwgZGxhIHdzcMOzxYJjenlubmlrYSByZWdyZXNqaSB1c3RhbG15IE5vcm1hbG55IHJvemvFgmFkIHByaW9yIG8gxZtyZWRuaWVqIDAgaSBvZGNoeWxlbml1IHN0YW5kYXJkb3d5bSAxLiAKCmBgYHtyfQpwcmlvcjEgPC0gcHJpb3Iobm9ybWFsKDAsIDEpLCBjbGFzcyA9IGIpCmBgYAoKUG9uaWV3YcW8IG9kY2h5bGVuaWUgc3RhbmRhcmRvd2Ugem1pZW5uZWogb2JqYcWbbmlhbmVqIHd5bm9zaSAxLCBqZXN0IGJhcmR6byBtYcWCbyBwcmF3ZG9wb2RvYm5lLCDFvGVieSByw7PFvG5pY2EgcG9tacSZZHp5IGtvYmlldGFtaSBhIG3EmcW8Y3p5em5hbWkgd3lub3NpxYJhIHdpxJljZWogbmnFvCAxIChsdWIgbW5pZWogbmnFvCAtMSkuCmBgYHtyfQp0aWJibGUoYiA9IHNlcSgtNCw0LCBsZW5ndGgub3V0ID0gMTAwKSkgJT4lIAogIGdncGxvdChhZXMoeD1iKSkrCiAgc3RhdF9mdW5jdGlvbihmdW4gPSBkbm9ybSwgYXJncyA9IGxpc3QobWVhbiA9IDAsIHNkID0gMSkpCmBgYAoKW1R1dGFqXShodHRwczovL2dpdGh1Yi5jb20vc3Rhbi1kZXYvc3Rhbi93aWtpL1ByaW9yLUNob2ljZS1SZWNvbW1lbmRhdGlvbnMpIG1vxbxuYSBzcHJhd2R6acSHIHJla29tZW5kYWNqZSBqYWsgdXN0YWxhxIcgcm96a8WCYWR5IHByaW9yLgoKRG9wYXN1am15IG5hc3ogbW9kZWwuCgpgYGB7cn0KZml0NCA8LSBicm0oamNfbWVhbiB+IGdlbmRlciwgCiAgICAgICAgICAgZGF0YSA9IHMzLAogICAgICAgICAgIHByaW9yID0gcHJpb3IxLAogICAgICAgICAgIHNlZWQgPSAxMjM0KQpgYGAKCk1vxbxlbXkgdGVyYXogc3ByYXdkemnEhyB3c3DDs8WCY3p5bm5pa2kgcmVncmVzamksIGFieSBkb3dpZWR6aWXEhyBzacSZIGN6eSBtb2RlbCB3c2thenVqZSBuYSByw7PFvG5pY8SZIHBvbWnEmWR6eSBtxJnFvGN6eXpuYW1pIGEga29iaWV0YW1pLgoKYGBge3J9CmZpdDQKYGBgCgpNb8W8ZW15IHLDs3duaWXFvCBzdHdvcnp5xIcgd3lrcmVzIG9icmF6dWrEhWN5IHLDs8W8bmljxJkuCgpgYGB7cn0KbWFyZ2luYWxfZWZmZWN0cyhmaXQ0KQpgYGAKCkx1YiB3eWtvcnp5c3RhxIcgcGFraWV0IGBlbW1lYW5zYCBhYnkgd3lkcnVrb3dhxIcgd2FydG/Fm2NpIMWbcmVkbmljaC4KClphaW5zdGFsdWpteSBuYWpwaWVydyBwYWtpZXQgYGVtbWVhbnNgLgoKYGBge3J9CiNpbnN0YWxsLnBhY2thZ2VzKCdlbW1lYW5zJykKYGBgCgoKYGBge3J9CmxpYnJhcnkoZW1tZWFucykKZW1tZWFucyhmaXQ0LCB+Z2VuZGVyKQpgYGAKClByenkgdcW8eWNpdSBwYWtpZXR1IGB0aWR5YmF5ZXNgIG1vxbxlbXkgdHdvcnp5xIcgYmFyZHppZWogemFhd2Fuc293YW5lIHd5a3Jlc3kgb2JyYXp1asSFY2UgcsOzxbxuaWNlLgoKWmFpbnN0YWx1am15IHBha2lldCBgdGlkeWJheWVzYC4KCmBgYHtyfQojaW5zdGFsbC5wYWNrYWdlcygndGlkeWJheWVzJykKYGBgCgpUdXRhaiBqZXN0IHByenlrxYJhZCB3eWtyZXN1LCB0encuIGhhbGYtZXllIHBsb3QuCmBgYHtyfQpsaWJyYXJ5KHRpZHliYXllcykKbGlicmFyeShtb2RlbHIpCnRoZW1lX3NldCh0aGVtZV90aWR5YmF5ZXMoKSkKczMgJT4lIAogIGRhdGFfZ3JpZChnZW5kZXIpICU+JSAKICBhZGRfZml0dGVkX2RyYXdzKGZpdDQpICU+JSAKICBnZ3Bsb3QoYWVzKHg9LnZhbHVlLCB5PWdlbmRlcikpKwogIGdlb21faGFsZmV5ZWgoYWVzKGZpbGwgPSBnZW5kZXIpKSsKICBsYWJzKHg9IkJlbGllZiBpbiBKZXdpc2ggY29uc3BpcmFjeSIsIHkgPSAiR2VuZGVyIikrCiAgZ3VpZGVzKGZpbGw9RikKYGBgCgpUdXRhaiBqZXN0IHByenlrxYJhZCB3eWtyZXN1IHogcsOzxbxueW1pIHByemVkemlhxYJhbWkgd2lhcnlnb2Rub8WbY2kuCgpgYGB7cn0KczMgJT4lIAogIGRhdGFfZ3JpZChnZW5kZXIpICU+JSAKICBhZGRfZml0dGVkX2RyYXdzKGZpdDQpICU+JSAKICBnZ3Bsb3QoYWVzKHg9LnZhbHVlLCB5PWdlbmRlcikpKwogIHN0YXRfaW50ZXJ2YWxoKCkrCiAgbGFicyh4PSJCZWxpZWYgaW4gSmV3aXNoIGNvbnNwaXJhY3kiLCB5ID0gIkdlbmRlciIpCmBgYAoKTHViIGplxbxlbGkgaW50ZXJlc3VqxIUgbmFzIHLDs8W8bmUgcHJ6ZWR6aWHFgnkgZGxhIHLDs8W8bmljeS4KCmBgYHtyfQpzMyAlPiUgCiAgZGF0YV9ncmlkKGdlbmRlcikgJT4lIAogIGFkZF9maXR0ZWRfZHJhd3MoZml0NCkgJT4lIAogIGNvbXBhcmVfbGV2ZWxzKHZhcmlhYmxlID0gLnZhbHVlLCBieSA9IGdlbmRlcikgJT4lIAogIGdncGxvdChhZXMoeD0udmFsdWUsIHk9Z2VuZGVyKSkrCiAgc3RhdF9pbnRlcnZhbGgoKSsKICBsYWJzKHg9IkRpZmZlcmVuY2UgaW4gYmVsaWVmIGluIEpld2lzaCBjb25zcGlyYWN5IiwgeSA9ICIiKQpgYGAKCgojIyBKZcW8ZWxpIG1hbXkgY3phcywgVHdvamEga29sZWo6CgotIFByemVwcm93YWR6YcW6IGFuYWxvZ2ljem7EhSBhbmFsaXrEmSBwcnp5IHXFvHljaXUgcm96a8WCYWR1IHQgU3R1ZGVudGEuCg==</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiYnJtczogcmVncmVzamEgcHJvc3RhIGkgcG9yw7N3bnl3YW5pZSDFm3JlZG5pY2giCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCiMgMS4gV3Byb3dhZHplbmllIGRvIG1vZGVsaSBiYXllc293c2tpZWogcmVncmVzamkKClN5bXVsYWNqZSBNQ01DIHpuYWpkdWrEhSBzemN6ZWfDs2xuZSB6YXN0b3Nvd2FuaWUgdyBwcnp5cGFka3Ugcm96bWFpdHljaCBtb2RlbGkgcmVncmVzeWpueWNoLgpXIHRha2ljaCBtb2RlbGFjaCByb3prxYJhZCBwb3N0ZXJpb3IgamVzdCB3aWVsb3d5bWlhcm93eTogb3Bpc3VqZSBwYXJhbWV0cnkgendpxIV6YW5lIHogamVkbnltIGx1YiB3acSZY2VqIHdzcMOzxYJjenlubmlrYW1pIHJlZ3Jlc2ppIG9yYXogcGFyYW1ldHIgendpxIV6YW55IHogcm96a8WCYWRlbSByZXN6dCByZWdyZXNqaS4gIAoKJCQKb3V0Y29tZV9pIFxzaW0gTm9ybWFsKFxtdV9pLCBcc2lnbWEpIFxcClxtdV9pID0gXGJldGEgXHRpbWVzIHByZWRpY3Rvcl9pIFxcClxiZXRhIFxzaW0gTm9ybWFsKDAsIDEwKSBcXApcc2lnbWEgXHNpbSBTdHVkZW50KDMsIDAsIDEwKQokJAoKTyBpbGUgbmllIG1hbXkgcG9kc3RhdyBhYnkgdcW8eXdhxIcgaW5mb3JtYXR5d255Y2ggcm96a8WCYWTDs3cgcHJpb3IsIG1vxbxlbXkgemFzdG9zb3dhxIcgcm96a8WCYWR5LCBrdMOzcmUgZG9zdGFyY3phasSFIG1pbmltYWxuxIUgaWxvxZvEhyBpbmZvcm1hY2ppIG5hIHRlbWF0IHBhcmFtZXRyw7N3LgoKVGVuIHJvemvFgmFkIGplc3Qgd3pnbMSZZG5pZSBhZ25vc3R5Y3pueSB3emdsxJlkZW0gd3Nww7PFgmN6eW5uaWvDs3cgcmVncmVzamkuCgpgYGB7cn0KZ2dwbG90KGFlcyh4PXgpLCBkYXRhID0gZGF0YS5mcmFtZSh4PXNlcSgtNTAsNTAsIGxlbmd0aC5vdXQgPSA1MCkpKSsKICBzdGF0X2Z1bmN0aW9uKGZ1bj1kbm9ybSwgYXJncyA9IGxpc3QobWVhbiA9IDAsIHNkID0gMTApLCBjb2xvdXI9ImJsdWUiKSsKICBsYWJzKHRpdGxlID0gIlByaW9yIGRpc3RyaWJ1dGlvbiBmb3IgcmVncmVzc2lvbiB3ZWlnaHRzIiwgeCA9ICJiZXRhIiwgeT0iIikKYGBgCgpaIGtvbGVpIHBvxYLDs3drb3d5IHJvemvFgmFkIHQgU3R1ZGVudGEgamVzdCB3emdsxJlkbmllIGFnbm9zdHljem55IHd6Z2zEmWRlbSBvZGNoeWxlbmlhIHN0YW5kYXJkb3dlZ28gcmVzenQgcmVncmVzamkuCgpgYGB7cn0KZHNjYWxlZF90IDwtIGZ1bmN0aW9uKHgsIHNjLCBkZil7CiAgZHQoeC9zYywgZGY9ZGYpCn0KZ2dwbG90KGFlcyh4PXgpLCBkYXRhID0gZGF0YS5mcmFtZSh4PXNlcSgwLDUwLCBsZW5ndGgub3V0ID0gNTApKSkrCiAgc3RhdF9mdW5jdGlvbihmdW49ZHNjYWxlZF90LCBhcmdzID0gbGlzdChkZj0zLCBzYz0xMCksIGNvbG91cj0iYmx1ZSIpKwogIGxhYnModGl0bGUgPSAiUHJpb3IgZGlzdHJpYnV0aW9uIGZvciBzdGFuZGFyZCBkZXZpYXRpb24gb2YgcmVzaWR1YWxzIiwgeCA9ICJzaWdtYSIsIHk9IiIpCmBgYAoKIyAyLiBQaWVyd3N6eSBtb2RlbCB3IGJybXMKClByemVkIHN0d29yemVuaWVtIG5hc3plZ28gcGllcndzemVnbyBtb2RlbHUgemFpbnN0YWx1am15IHBha2lldCBgYnJtc2AKCmBgYHtyfQojaW5zdGFsbC5wYWNrYWdlcygnYnJtcycpCmBgYAoKClphxYJhZHVqbXkgcGFraWV0eSBgdGlkeXZlcnNlYCwgYGhhdmVuYCBpIGBicm1zYC4KCmBgYHtyfQpsaWJyYXJ5KHRpZHl2ZXJzZSkKbGlicmFyeShoYXZlbikKbGlicmFyeShicm1zKQpgYGAKCgpgYGB7cn0KcmVhbF9kYXRhIDwtIHJlYWRfc2F2KCJiYW1fY2xhc3M3X2RhdGEuc2F2IikKZ2xpbXBzZShyZWFsX2RhdGEpCmBgYAoKUHJ6ZWQgd8WCxIVjemVuaWVtIHByZWR5a3RvcsOzdyBkbyBhbmFsaXogdyBgYnJtc2AgemFsZWNhbmUgKG5pZXpixJlkbmUpIGplc3QgaWNoIHd5c3RhbmRhcnl6b3dhbmllLgoKYGBge3J9CnJlYWxfZGF0YSA8LSByZWFsX2RhdGEgJT4lIAogIG11dGF0ZSh6RkJLID0gKEZCSyAtIG1lYW4oRkJLLCBuYS5ybT1UKSkgLyBzZChGQkssIG5hLnJtPVQpICkKYGBgCgpXYXJ0byByw7N3bmllxbwgc3BvanJ6ZcSHIG5hIHd5a3JlcywgYWJ5IHVwZXduacSHIHNpxJksIMW8ZSBuYXN6IG1vZGVsIG1hIHNlbnMuCgpgYGB7cn0KcmVhbF9kYXRhICU+JSAKICBnZ3Bsb3QoYWVzKHpGQkssIHN1bVBybykpKwogIGdlb21faml0dGVyKCkrCiAgbGFicyh4PSJGZWVsaW5ncyBvZiBsYWNrIG9mIGNvbnRyb2wgKHotc2NvcmUpIiwgeT0iU3VtIG9mIHBlcnNvbmFsIHByb2plY3RzIikrCiAgc2NhbGVfeV9jb250aW51b3VzKGJyZWFrcz0wOjEwKQpgYGAKCk1vZGVsb3dhbmllIHcgcGFraWVjaWUgYGJybXNgIGplc3QgYmFyZHpvIHByb3N0ZS4KCmBgYApicm0oZm9ybXVsYSA9IFBSRURJQ1RFRF9WQVJJQUJMRSB+IFBSRURJQ1RPUlMsCiAgICBkYXRhID0gTkFNRV9PRl9EQVRBX0ZSQU1FLAogICAgcHJpb3IgPSBQUklPUl9ESVNUUklCVVRJT04sCiAgICBmYW1pbHkgPSBMSUtFTElIT09EX0RJU1RSSUJVVElPTikKYGBgCgpDesSZxZvEhyBwYXJhbWV0csOzdyBtYSBqdcW8IG5hZGFuZSBuaWVpbmZvcm1hdHl3bmUgcm96a8WCYWR5IHByaW9yLgoKYGBge3J9CmdldF9wcmlvcihzdW1Qcm8gfiB6RkJLLCAKICAgICAgICAgIGRhdGEgPSByZWFsX2RhdGEpCmBgYAoKUHJ6eXBpc3pteSBwYXJhbWV0cm93aSB3c3DDs8WCY3p5bm5pa2EgcmVncmVzamkgTm9ybWFseSByb3prxYJhZCBwcmlvciwgemUgxZtyZWRuacSFIDAgaSBvZGNoeWxlbmllIHN0YW5kYXJkb3d5bSAxMC4KCmBgYHtyfQpwcmlvcl9yZWdfd2VpZ2h0cyA8LSBwcmlvcihub3JtYWwoMCwgMTApLCBjbGFzcyA9IGIpCnByaW9yX3JlZ193ZWlnaHRzCmBgYAoKTW/FvGVteSB0ZXJheiBzcHLDs2Jvd2HEhyBkb3Bhc293YcSHIG5hc3ogbW9kZWwuCgpgYGB7cn0KZml0MSA8LSBicm0oc3VtUHJvIH4gekZCSywKICAgICAgICAgICAgZGF0YSA9IHJlYWxfZGF0YSwKICAgICAgICAgICAgcHJpb3IgPSBwcmlvcl9yZWdfd2VpZ2h0cywKICAgICAgICAgICAgZmFtaWx5ID0gZ2F1c3NpYW4oKSkKYGBgCgpXacSZa3N6b8WbxIcgaW50ZXJlc3VqxIVjeWNoIG5hcyBpbmZvcm1hY2ppIHphd2FydGEgamVzdCB3IHBvZHN0YXdvd3ltIHd5ZHJ1a3UuCk5hbGXFvHkgdXdhxbxuaWUgc3ByYXdkemHEhyBrb2x1bW55IFJoYXQsIEJ1bGtfRVNTIGkgVGFpbF9FU1MuIEluZm9ybXVqxIUgb25lIG8gamFrb8WbY2kgc3ltdWxhY2ppIE1DTUMuClJoYXQgZGxhIHdzenlzdGtpY2ggcGFyYW1ldHLDs3cgcG93aW5ubyBiecSHIG1uaWVqc3plIG5pxbwgMS4wMS4KQnVsa19FU1MgaSBUYWlsX0VTUyBwb3dpbm55IHd5bm9zacSHIHByenlqbmFqbW5pZWogNDAwLgoKYGBge3J9CmZpdDEKYGBgCgpEb2RhdGtvd28sIG1vxbxlbXkgc3ByYXdkemnEhyB3YXJ0b8WbxIcgJFJeMiQuCgpgYGB7cn0KYmF5ZXNfUjIoZml0MSkKYGBgCgpPcmF6IG5hcnlzb3dhxIcgcHJlZHlrY2plIG5hc3plZ28gbW9kZWx1LgoKYGBge3J9Cm1hcmdpbmFsX2VmZmVjdHMoZml0MSwgInpGQksiLCBzcGFnaGV0dGkgPSBULCBuc2FtcGxlcyA9IDUwKQpgYGAKClBvbmnFvGVqIHRlbiBzYW0gd3lrcmVzLCB6IGRvZGF0a293eW1pIG9wY2phbWkuIAoKYGBge3J9Cm1hcmdpbmFsX2VmZmVjdHMoZml0MSwgInpGQksiLCBzcGFnaGV0dGkgPSBULCBuc2FtcGxlcyA9IDMwMCkgJT4lIAogIHBsb3QocG9pbnRzID0gVCwgcG9pbnRfYXJncyA9IGxpc3Qod2lkdGggPSAwLjIsIGhlaWdodCA9IDAuMiksIHBsb3Q9RikgJT4lIAogIC5bWzFdXSArCiAgbGFicyh4PSJGZWVsaW5ncyBvZiBsYWNrIG9mIGNvbnRyb2wgKHotc2NvcmUpIiwgeT0iU3VtIG9mIHBlcnNvbmFsIHByb2plY3RzIikKYGBgCgoKCgojIDMuIE9kcG9ybmEgcmVncmVzamEgbGluaW93YS4KCkN6YXNhbWkgdyBuYXN6eWNoIGRhbnljaCBixJlkxIUgcG9qYXdpYcWCeSBzacSZIG9kc3RhasSFY2Ugb2JzZXJ3YWNqZSAob3V0bGllcnkpLgoKYGBge3J9CnJlYWxfZGF0YSRzdW1Qcm9PdXQgPC0gcmVhbF9kYXRhJHN1bVBybwpyZWFsX2RhdGEkc3VtUHJvT3V0WzIwXSA8LSAyMApyZWFsX2RhdGEkc3VtUHJvT3V0WzM0XSA8LSAxOApyZWFsX2RhdGEkc3VtUHJvT3V0WzQ5XSA8LSAxNgoKcmVhbF9kYXRhICU+JSAKICBnZ3Bsb3QoYWVzKHpGQkssIHN1bVByb091dCkpKwogIGdlb21faml0dGVyKCkrCiAgbGFicyh4PSJGZWVsaW5ncyBvZiBsYWNrIG9mIGNvbnRyb2wgKHotc2NvcmUpIiwgeT0iU3VtIG9mIHBlcnNvbmFsIHByb2plY3RzICh3aXRoIGZha2Ugb3V0bGllcnMpIikKYGBgCgoKU3ByYXdkxbpteSBqYWsgcmFkemkgc29iaWUgeiB0YWvEhSBzeXR1YWNqxIUgc3RhbmRhcmRvd3kgbW9kZWwuCgpgYGB7cn0KZml0MiA8LSBicm0oc3VtUHJvT3V0IH4gekZCSywKICAgICAgICAgICAgZGF0YSA9IHJlYWxfZGF0YSwKICAgICAgICAgICAgcHJpb3IgPSBwcmlvcl9yZWdfd2VpZ2h0cywKICAgICAgICAgICAgZmFtaWx5ID0gZ2F1c3NpYW4oKSkKYGBgCgpQb3LDs3duYWpteSB3eW5payB6IG1vZGVsZW0gYGZpdDFgLgoKYGBge3J9CmZpdDIKYGBgCgpTcHJhd2TFum15IHphbGXFvG5vxZvEhyBuYSB3eWtyZXNpZS4KCmBgYHtyfQptYXJnaW5hbF9lZmZlY3RzKGZpdDIsICJ6RkJLIiwgc3BhZ2hldHRpID0gVCwgbnNhbXBsZXMgPSAzMDApICU+JSAKICBwbG90KHBvaW50cyA9IFQsCiAgICAgICBwb2ludF9hcmdzID0gbGlzdCh3aWR0aCA9IDAuMiwgaGVpZ2h0ID0gMC4yKSkgJT4lIAogIC5bWzFdXSArCiAgbGFicyh4PSJGZWVsaW5ncyBvZiBsYWNrIG9mIGNvbnRyb2wgKHotc2NvcmUpIiwgeT0iU3VtIG9mIHBlcnNvbmFsIHByb2plY3RzICh3aXRoIG91dGxpZXJzKSIpCmBgYAoKClcgcHJ6eXBhZGt1IG1vZGVsaSBiYXllc293c2tpY2ggbmllIG11c2lteSB6YWvFgmFkYcSHLCDFvGUgcm96a8WCYWQgcmVzenQgamVzdCBOb3JtYWxueS4gTW/FvGUgb24gbWllxIcgbnAuIHJvemvFgmFkIHQgU3R1ZGVudGEuCgpgYGB7cn0KZ2dwbG90KGRhdGE9ZGF0YS5mcmFtZSh4PXNlcSgtNSwgNSwgbGVuZ3RoLm91dCA9IDEwMCkpLCBtYXBwaW5nID0gYWVzKHg9eCkpKwogIHN0YXRfZnVuY3Rpb24oYWVzKGNvbG91ciA9ICJOb3JtYWwgbGlrZWxpaG9vZCIpLAogICAgICAgICAgICAgICAgZnVuID0gZG5vcm0sIGFyZ3MgPSBsaXN0KG1lYW4gPSAwLCBzZD0xKSkrCiAgc3RhdF9mdW5jdGlvbihhZXMoY29sb3VyID0gIlN0dWRlbnQgbGlrZWxpaG9vZCAoZGY9MzApIiksCiAgICAgICAgICAgICAgICBmdW4gPSBkdCwgYXJncyA9IGxpc3QoZGYgPSAzMCkpKwogIHN0YXRfZnVuY3Rpb24oYWVzKGNvbG91ciA9ICJTdHVkZW50IGxpa2VsaWhvb2QgKGRmPTMpIiksCiAgICAgICAgICAgICAgICBmdW4gPSBkdCwgYXJncyA9IGxpc3QoZGYgPSAzKSkrCiAgbGFicyh4PSIiLHk9IiIsY29sb3VyPSIiKQpgYGAKCk5pZSBtdXNpbXkgdXN0YWxhxIcgd2FydG/Fm2NpIHN0b3BuaSBzd29ib2R5LiBNb8W8ZW15IGrEhSBvc3phY293YcSHIC0gbXVzaW15IHR5bGtvIHByenlwaXNhxIcgamVqIHJvemvFgmFkIHByaW9yICh0dXRhaiByb3prxYJhZCBnYW1tYSkuCgpgYGB7cn0KZ2V0X3ByaW9yKHN1bVByb091dCB+IHpGQkssCiAgICAgICAgICAgIGRhdGEgPSByZWFsX2RhdGEsCiAgICAgICAgICAgIGZhbWlseSA9IHN0dWRlbnQoKSkKYGBgCgpTcHJhd2TFum15IGphayByYWR6aSBzb2JpZSB0YWthIHdlcnNqYSBtb2RlbHUuCgpgYGB7cn0KZml0MyA8LSBicm0oc3VtUHJvT3V0IH4gekZCSywKICAgICAgICAgICAgZGF0YSA9IHJlYWxfZGF0YSwKICAgICAgICAgICAgcHJpb3IgPSBwcmlvcl9yZWdfd2VpZ2h0cywKICAgICAgICAgICAgZmFtaWx5ID0gc3R1ZGVudCgpKQpgYGAKCgpQb3LDs3duYWpteSB3eW5payBkbyBtb2RlbHUgYGZpdDJgIGkgYGZpdDFgLgoKYGBge3J9CmZpdDMKYGBgCgpOYXJ5c3VqbXkgd3lrcmVzIHogZG9wYXNvd2FuxIUgbGluacSFIHJlZ3Jlc2ppLgoKYGBge3J9Cm1hcmdpbmFsX2VmZmVjdHMoZml0MywgInpGQksiLCBzcGFnaGV0dGkgPSBULCBuc2FtcGxlcyA9IDMwMCkgJT4lIAogIHBsb3QocG9pbnRzID0gVCwKICAgICAgIHBvaW50X2FyZ3MgPSBsaXN0KHdpZHRoID0gMC4yLCBoZWlnaHQgPSAwLjIpKSAlPiUgCiAgLltbMV1dICsKICBsYWJzKHg9IkZlZWxpbmdzIG9mIGxhY2sgb2YgY29udHJvbCAoei1zY29yZSkiLCB5PSJTdW0gb2YgcGVyc29uYWwgcHJvamVjdHMgKHdpdGggb3V0bGllcnMpIikKYGBgCgoKIyA0LiBSZWdyZXNqYSB6IHByZWR5a3RvcmFtaSBrYXRlZ29yaWFsbnltaS4KCk1vZGVsb3dhbmllIHogdcW8eWNpZW0gcHJlZHlrdG9yw7N3IGthdGVnb3JpYWxueWNoIHd5a29yenlzdHVqZSBpZGVudHljem5lIG1vZGVsZS4gUHJlZHlrdG9yeSBrYXRlZ29yaWFsbmUgc8SFIHR5bGtvIHVwcnplZG5pbyAtIGF1dG9tYXR5Y3puaWUgLSB6YW1pZW5pYW5lIG5hIHptaWVubmUgZHVtbXkgKGx1YiBpbm5lIGtvbnRyYXN0eSB3IHphbGXFvG5vxZtjaSBvZCBwb3RyemViKS4KClNwcmF3ZMW6bXkgZGFuZSB6IGlubmVnbyBiYWRhbmlhLgoKYGBge3J9CnMzIDwtIHJlYWRfY3N2KCJzdHVkeTMuY3N2IiwgbmEgPSAiLTk5OSIpCnMzIDwtIHMzICU+JSAKICBtdXRhdGUoZ2VuZGVyID0gZmFjdG9yKGdlbmRlciwgbGV2ZWxzID0gYygiayIsIm0iKSwgbGFiZWxzID0gYygiZmVtYWxlIiwibWFsZSIpKSwKICAgICAgICAgY29uZCA9IGZhY3Rvcihjb25kKSkKCmdsaW1wc2UoczMpCmBgYAoKTmFzenltIHByZWR5a3RvcmVtIGthdGVnb3JpYWxueW0gYsSZZHppZSB3IHR5bSBwcnp5cGFka3UgcMWCZcSHLiBXIHR5bSBwcnp5cGFka3Uga29kb3dhbmEgcHJ6eSBwb21vY3kgMiB3YXJ0b8WbY2kuCgpgYGB7cn0KczMgJT4lIAogIGNvdW50KGdlbmRlcikKYGBgCgoKYGBge3J9CnRpYmJsZSgKICBjYXRlZ29yeSA9IHJlcChjKCJmZW1hbGUiLCJtYWxlIiksIGVhY2ggPSAzKSwKICBkdW1teSA9IHJlcCgwOjEsIGVhY2ggPSAzKQopCmBgYAoKU3ByYXdkxbpteSByb3prxYJhZCB6bWllbm5laiBvYmphxZtuaWFuZWouCgpgYGB7cn0KczMgJT4lIAogIGdncGxvdChhZXMoeD1qY19tZWFuKSkrCiAgZ2VvbV9kZW5zaXR5KCkKYGBgCgoKU3ByYXdkxbpteSBqYWsgdXN0YWxvbmUgc8SFIGRvbXnFm2xuZSByb3prxYJhZHkgcHJpb3IgZGxhIHRlZ28gbW9kZWx1LgoKYGBge3J9CmdldF9wcmlvcihqY19tZWFuIH4gIGdlbmRlciwgCiAgICAgICAgICAgZGF0YSA9IHMzKQpgYGAKClcgdHltIHByenlwYWRrdSwgZGxhIHdzcMOzxYJjenlubmlrYSByZWdyZXNqaSB1c3RhbG15IE5vcm1hbG55IHJvemvFgmFkIHByaW9yIG8gxZtyZWRuaWVqIDAgaSBvZGNoeWxlbml1IHN0YW5kYXJkb3d5bSAxLiAKCmBgYHtyfQpwcmlvcjEgPC0gcHJpb3Iobm9ybWFsKDAsIDEpLCBjbGFzcyA9IGIpCmBgYAoKUG9uaWV3YcW8IG9kY2h5bGVuaWUgc3RhbmRhcmRvd2Ugem1pZW5uZWogb2JqYcWbbmlhbmVqIHd5bm9zaSAxLCBqZXN0IGJhcmR6byBtYcWCbyBwcmF3ZG9wb2RvYm5lLCDFvGVieSByw7PFvG5pY2EgcG9tacSZZHp5IGtvYmlldGFtaSBhIG3EmcW8Y3p5em5hbWkgd3lub3NpxYJhIHdpxJljZWogbmnFvCAxIChsdWIgbW5pZWogbmnFvCAtMSkuCmBgYHtyfQp0aWJibGUoYiA9IHNlcSgtNCw0LCBsZW5ndGgub3V0ID0gMTAwKSkgJT4lIAogIGdncGxvdChhZXMoeD1iKSkrCiAgc3RhdF9mdW5jdGlvbihmdW4gPSBkbm9ybSwgYXJncyA9IGxpc3QobWVhbiA9IDAsIHNkID0gMSkpCmBgYAoKW1R1dGFqXShodHRwczovL2dpdGh1Yi5jb20vc3Rhbi1kZXYvc3Rhbi93aWtpL1ByaW9yLUNob2ljZS1SZWNvbW1lbmRhdGlvbnMpIG1vxbxuYSBzcHJhd2R6acSHIHJla29tZW5kYWNqZSBqYWsgdXN0YWxhxIcgcm96a8WCYWR5IHByaW9yLgoKRG9wYXN1am15IG5hc3ogbW9kZWwuCgpgYGB7cn0KZml0NCA8LSBicm0oamNfbWVhbiB+IGdlbmRlciwgCiAgICAgICAgICAgZGF0YSA9IHMzLAogICAgICAgICAgIHByaW9yID0gcHJpb3IxLAogICAgICAgICAgIHNlZWQgPSAxMjM0KQpgYGAKCk1vxbxlbXkgdGVyYXogc3ByYXdkemnEhyB3c3DDs8WCY3p5bm5pa2kgcmVncmVzamksIGFieSBkb3dpZWR6aWXEhyBzacSZIGN6eSBtb2RlbCB3c2thenVqZSBuYSByw7PFvG5pY8SZIHBvbWnEmWR6eSBtxJnFvGN6eXpuYW1pIGEga29iaWV0YW1pLgoKYGBge3J9CmZpdDQKYGBgCgpNb8W8ZW15IHLDs3duaWXFvCBzdHdvcnp5xIcgd3lrcmVzIG9icmF6dWrEhWN5IHLDs8W8bmljxJkuCgpgYGB7cn0KbWFyZ2luYWxfZWZmZWN0cyhmaXQ0KQpgYGAKCkx1YiB3eWtvcnp5c3RhxIcgcGFraWV0IGBlbW1lYW5zYCBhYnkgd3lkcnVrb3dhxIcgd2FydG/Fm2NpIMWbcmVkbmljaC4KClphaW5zdGFsdWpteSBuYWpwaWVydyBwYWtpZXQgYGVtbWVhbnNgLgoKYGBge3J9CiNpbnN0YWxsLnBhY2thZ2VzKCdlbW1lYW5zJykKYGBgCgoKYGBge3J9CmxpYnJhcnkoZW1tZWFucykKZW1tZWFucyhmaXQ0LCB+Z2VuZGVyKQpgYGAKClByenkgdcW8eWNpdSBwYWtpZXR1IGB0aWR5YmF5ZXNgIG1vxbxlbXkgdHdvcnp5xIcgYmFyZHppZWogemFhd2Fuc293YW5lIHd5a3Jlc3kgb2JyYXp1asSFY2UgcsOzxbxuaWNlLgoKWmFpbnN0YWx1am15IHBha2lldCBgdGlkeWJheWVzYC4KCmBgYHtyfQojaW5zdGFsbC5wYWNrYWdlcygndGlkeWJheWVzJykKYGBgCgpUdXRhaiBqZXN0IHByenlrxYJhZCB3eWtyZXN1LCB0encuIGhhbGYtZXllIHBsb3QuCmBgYHtyfQpsaWJyYXJ5KHRpZHliYXllcykKbGlicmFyeShtb2RlbHIpCnRoZW1lX3NldCh0aGVtZV90aWR5YmF5ZXMoKSkKczMgJT4lIAogIGRhdGFfZ3JpZChnZW5kZXIpICU+JSAKICBhZGRfZml0dGVkX2RyYXdzKGZpdDQpICU+JSAKICBnZ3Bsb3QoYWVzKHg9LnZhbHVlLCB5PWdlbmRlcikpKwogIGdlb21faGFsZmV5ZWgoYWVzKGZpbGwgPSBnZW5kZXIpKSsKICBsYWJzKHg9IkJlbGllZiBpbiBKZXdpc2ggY29uc3BpcmFjeSIsIHkgPSAiR2VuZGVyIikrCiAgZ3VpZGVzKGZpbGw9RikKYGBgCgpUdXRhaiBqZXN0IHByenlrxYJhZCB3eWtyZXN1IHogcsOzxbxueW1pIHByemVkemlhxYJhbWkgd2lhcnlnb2Rub8WbY2kuCgpgYGB7cn0KczMgJT4lIAogIGRhdGFfZ3JpZChnZW5kZXIpICU+JSAKICBhZGRfZml0dGVkX2RyYXdzKGZpdDQpICU+JSAKICBnZ3Bsb3QoYWVzKHg9LnZhbHVlLCB5PWdlbmRlcikpKwogIHN0YXRfaW50ZXJ2YWxoKCkrCiAgbGFicyh4PSJCZWxpZWYgaW4gSmV3aXNoIGNvbnNwaXJhY3kiLCB5ID0gIkdlbmRlciIpCmBgYAoKTHViIGplxbxlbGkgaW50ZXJlc3VqxIUgbmFzIHLDs8W8bmUgcHJ6ZWR6aWHFgnkgZGxhIHLDs8W8bmljeS4KCmBgYHtyfQpzMyAlPiUgCiAgZGF0YV9ncmlkKGdlbmRlcikgJT4lIAogIGFkZF9maXR0ZWRfZHJhd3MoZml0NCkgJT4lIAogIGNvbXBhcmVfbGV2ZWxzKHZhcmlhYmxlID0gLnZhbHVlLCBieSA9IGdlbmRlcikgJT4lIAogIGdncGxvdChhZXMoeD0udmFsdWUsIHk9Z2VuZGVyKSkrCiAgc3RhdF9pbnRlcnZhbGgoKSsKICBsYWJzKHg9IkRpZmZlcmVuY2UgaW4gYmVsaWVmIGluIEpld2lzaCBjb25zcGlyYWN5IiwgeSA9ICIiKQpgYGAKCgojIyBKZcW8ZWxpIG1hbXkgY3phcywgVHdvamEga29sZWo6CgotIFByemVwcm93YWTFuiBhbmFsb2dpY3puxIUgYW5hbGl6xJkgcHJ6eSB1xbx5Y2l1IHJvemvFgmFkdSB0IFN0dWRlbnRhLgo=</div>
 
 
 
